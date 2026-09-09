@@ -99,33 +99,9 @@ const SEED = {
     },
   ],
 
-  customers: [
-    { id: 'cst-001', first_name: 'Amara', last_name: 'Okonkwo', email: 'amara.o@gmail.com', phone: '+234 813 456 7890', notes: 'Preparing for JAMB 2026. Very motivated student.', created_at: '2025-02-01T10:00:00Z' },
-    { id: 'cst-002', first_name: 'Emeka', last_name: 'Nwosu', email: 'emeka.nwosu@yahoo.com', phone: '+234 802 987 6543', notes: 'Parent-referred. Needs help with Maths and English.', created_at: '2025-02-10T11:00:00Z' },
-    { id: 'cst-003', first_name: 'Fatima', last_name: 'Aliyu', email: 'f.aliyu@outlook.com', phone: '+234 907 123 4567', notes: '', created_at: '2025-03-05T09:30:00Z' },
-    { id: 'cst-004', first_name: 'Chidi', last_name: 'Eze', email: 'chidi.eze@gmail.com', phone: '+234 816 234 5678', notes: 'SAT prep. Targeting 1400+.', created_at: '2025-03-20T14:00:00Z' },
-    { id: 'cst-005', first_name: 'Ngozi', last_name: 'Adeyemi', email: 'ngozi.a@gmail.com', phone: '+234 803 345 6789', notes: 'SS3 student, WAEC focus.', created_at: '2025-04-01T08:00:00Z' },
-    { id: 'cst-006', first_name: 'Tunde', last_name: 'Bakare', email: 'tunde.b@gmail.com', phone: '+234 814 567 8901', notes: '', created_at: '2025-04-15T10:00:00Z' },
-    { id: 'cst-007', first_name: 'Adaeze', last_name: 'Uchenna', email: 'adaeze.u@yahoo.com', phone: '+234 909 678 9012', notes: 'Long-term client. Excellent progress in Sciences.', created_at: '2025-05-01T09:00:00Z' },
-    { id: 'cst-008', first_name: 'Babatunde', last_name: 'Olatunde', email: 'bb.olatunde@gmail.com', phone: '+234 805 789 0123', notes: '', created_at: '2025-05-20T11:00:00Z' },
-    { id: 'cst-009', first_name: 'Kemi', last_name: 'Adeleke', email: 'kemi.adeleke@gmail.com', phone: '+234 811 890 1234', notes: 'Group sessions preferred.', created_at: '2025-06-01T10:00:00Z' },
-    { id: 'cst-010', first_name: 'Oluwaseun', last_name: 'Fasanya', email: 'seun.fasanya@gmail.com', phone: '+234 807 901 2345', notes: 'Parent books on their behalf.', created_at: '2025-06-15T14:00:00Z' },
-  ],
+  customers: [],
 
-  bookings: [
-    { id: 'bk-001', customer_id: 'cst-001', service_id: 'svc-002', booking_date: todayStr, start_time: '10:00', end_time: '11:30', status: 'CONFIRMED', notes: 'First consultation', booking_reference: 'BKM-8K2L', created_at: fmt(m3) },
-    { id: 'bk-002', customer_id: 'cst-002', service_id: 'svc-003', booking_date: todayStr, start_time: '14:00', end_time: '14:45', status: 'CONFIRMED', notes: '', booking_reference: 'BKM-3P9X', created_at: fmt(m5) },
-    { id: 'bk-003', customer_id: 'cst-003', service_id: 'svc-001', booking_date: tomorrowStr, start_time: '09:00', end_time: '09:30', status: 'PENDING', notes: 'Referred by Emeka', booking_reference: 'BKM-7T4W', created_at: fmt(m3) },
-    { id: 'bk-004', customer_id: 'cst-004', service_id: 'svc-004', booking_date: fmt(d3), start_time: '10:00', end_time: '12:00', status: 'CONFIRMED', notes: 'Full assessment, SAT focus', booking_reference: 'BKM-2M6R', created_at: fmt(m5) },
-    { id: 'bk-005', customer_id: 'cst-005', service_id: 'svc-005', booking_date: fmt(d5), start_time: '11:00', end_time: '12:00', status: 'PENDING', notes: '', booking_reference: 'BKM-5N1Q', created_at: fmt(m3) },
-    { id: 'bk-006', customer_id: 'cst-006', service_id: 'svc-002', booking_date: fmt(d7), start_time: '14:00', end_time: '15:30', status: 'CONFIRMED', notes: '', booking_reference: 'BKM-9H7Y', created_at: fmt(m8) },
-    { id: 'bk-007', customer_id: 'cst-007', service_id: 'svc-003', booking_date: fmt(d10), start_time: '09:00', end_time: '09:45', status: 'CONFIRMED', notes: '', booking_reference: 'BKM-4B8Z', created_at: fmt(m5) },
-    { id: 'bk-008', customer_id: 'cst-008', service_id: 'svc-001', booking_date: fmt(m3), start_time: '11:00', end_time: '11:30', status: 'COMPLETED', notes: '', booking_reference: 'BKM-6C2K', created_at: fmt(m8) },
-    { id: 'bk-009', customer_id: 'cst-009', service_id: 'svc-005', booking_date: fmt(m5), start_time: '15:00', end_time: '16:00', status: 'COMPLETED', notes: '', booking_reference: 'BKM-1D3J', created_at: fmt(m12) },
-    { id: 'bk-010', customer_id: 'cst-010', service_id: 'svc-002', booking_date: fmt(m8), start_time: '10:00', end_time: '11:30', status: 'CANCELLED', notes: 'Client rescheduled', booking_reference: 'BKM-0F5L', created_at: fmt(m12) },
-    { id: 'bk-011', customer_id: 'cst-001', service_id: 'svc-003', booking_date: fmt(m12), start_time: '09:00', end_time: '09:45', status: 'COMPLETED', notes: '', booking_reference: 'BKM-7G8M', created_at: fmt(m20) },
-    { id: 'bk-012', customer_id: 'cst-002', service_id: 'svc-004', booking_date: fmt(d14), start_time: '10:00', end_time: '12:00', status: 'PENDING', notes: 'Parent accompanying', booking_reference: 'BKM-3H1N', created_at: fmt(m3) },
-  ],
+  bookings: [],
 
   businessHours: [
     { id: 'bh-0', day_of_week: 0, day_name: 'Sunday',    opening_time: '09:00', closing_time: '13:00', is_open: false },

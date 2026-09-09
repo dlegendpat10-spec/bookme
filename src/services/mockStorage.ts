@@ -17,8 +17,15 @@ class MockStorageEngine {
   }
 
   private initSeeds() {
-    if (!localStorage.getItem(KEYS.BUSINESSES)) {
+    const rawBiz = localStorage.getItem(KEYS.BUSINESSES);
+    if (!rawBiz || rawBiz.includes('luxe-grooming')) {
       localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
+      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(INITIAL_BOOKINGS));
+      localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(INITIAL_CUSTOMERS));
+      localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
+      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+      return;
     }
     if (!localStorage.getItem(KEYS.SERVICES)) {
       localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
