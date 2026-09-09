@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Confirmed — Bookme</title>
+  <meta name="description" content="Your appointment has been confirmed. Keep your reference number safe.">
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true"></div>
+
+<main class="confirm-main" id="main-content">
+  <div class="container confirm-container">
+
+    <!-- Success Icon -->
+    <div class="success-icon animate-scale-in" role="img" aria-label="Success checkmark">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+
+    <h1 class="confirm-title animate-fade-up delay-100">Booking Confirmed! 🎉</h1>
+    <p class="confirm-subtitle animate-fade-up delay-200" id="confirm-greeting">
+      Your appointment has been booked. See you there!
+    </p>
+
+    <!-- Reference Card -->
+    <div class="ref-card animate-fade-up delay-300" role="region" aria-labelledby="ref-heading">
+      <div class="ref-card-header">
+        <div class="ref-label" id="ref-heading">Booking Reference</div>
+        <button class="btn btn-ghost btn-sm" id="copy-btn" aria-label="Copy booking reference to clipboard">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span id="copy-label">Copy</span>
+        </button>
+      </div>
+      <div class="ref-code" id="ref-code" aria-live="polite">—</div>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="details-card animate-fade-up delay-400" role="region" aria-label="Booking details">
+      <h2 class="details-title">Appointment Details</h2>
+      <div class="details-grid">
+        <div class="detail-row">
+          <div class="detail-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Service</div>
+            <div class="detail-value" id="d-service">—</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Date</div>
+            <div class="detail-value" id="d-date">—</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Time</div>
+            <div class="detail-value" id="d-time">—</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Amount</div>
+            <div class="detail-value" id="d-price">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="status-row animate-fade-up delay-500">
+      <span class="badge badge-pending">Pending confirmation</span>
+      <span class="status-note">We'll confirm your appointment shortly.</span>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="next-steps animate-fade-up delay-500">
+      <h3 class="next-steps-title">What happens next?</h3>
+      <div class="next-steps-list">
+        <div class="next-step">
+          <div class="next-step-dot" aria-hidden="true">1</div>
+          <p>Your booking reference is <strong id="ref-inline">—</strong>. Save it for your records.</p>
+        </div>
+        <div class="next-step">
+          <div class="next-step-dot" aria-hidden="true">2</div>
+          <p>We'll review your booking and reach out to confirm the details.</p>
+        </div>
+        <div class="next-step">
+          <div class="next-step-dot" aria-hidden="true">3</div>
+          <p>See you at your session! Have any questions? Contact us directly.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="confirm-actions animate-fade-up delay-600">
+      <a href="book.html" class="btn btn-secondary btn-lg">Book Another Session</a>
+      <a href="index.html" class="btn btn-primary btn-lg">Back to Home</a>
+    </div>
+  </div>
+</main>
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function() {
+  const params  = new URLSearchParams(window.location.search);
+  const ref     = params.get('ref')     || 'BKM-XXXX';
+  const name    = params.get('name')    || 'there';
+  const service = params.get('service') || '—';
+  const date    = params.get('date')    || '';
+  const time    = params.get('time')    || '';
+  const price   = params.get('price')   || '0';
+
+  document.getElementById('ref-code').textContent    = ref;
+  document.getElementById('ref-inline').textContent  = ref;
+  document.getElementById('d-service').textContent   = service;
+  document.getElementById('d-date').textContent      = date ? API.formatDate(date) : '—';
+  document.getElementById('d-time').textContent      = time ? API.formatTime(time) : '—';
+  document.getElementById('d-price').textContent     = API.formatCurrency(Number(price));
+  document.getElementById('confirm-greeting').textContent =
+    `Hi ${name.split(' ')[0]}! Your appointment has been booked. See you there!`;
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    APP.copyToClipboard(ref, document.getElementById('copy-label'));
+  });
+})();
+</script>
+
+<style>
+.confirm-main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.confirm-container {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.success-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  border: 2px solid rgba(16 185 129 / .4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--success);
+  box-shadow: 0 0 40px rgba(16 185 129 / .3);
+}
+
+.confirm-title {
+  font-size: 2rem; font-weight: 800; letter-spacing: -0.04em;
+}
+.confirm-subtitle { font-size: 1rem; color: var(--text-muted); }
+
+/* Reference card */
+.ref-card {
+  background: var(--surface-2);
+  border: 2px dashed rgba(124 58 237 / .4);
+  border-radius: var(--r-xl);
+  padding: 1.75rem 2rem;
+  width: 100%;
+  max-width: 380px;
+}
+.ref-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.ref-label {
+  font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.ref-code {
+  font-size: 2rem; font-weight: 800; letter-spacing: .12em;
+  color: var(--accent-lt); font-family: var(--font-mono);
+}
+
+/* Details card */
+.details-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 1.5rem;
+  width: 100%;
+  text-align: left;
+}
+.details-title {
+  font-size: .9rem; font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.25rem;
+  color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .05em; font-size: .7rem;
+}
+.details-grid { display: flex; flex-direction: column; gap: .875rem; }
+.detail-row { display: flex; align-items: center; gap: 1rem; }
+.detail-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--accent-dim);
+  color: var(--accent-lt);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.detail-label { font-size: .75rem; color: var(--text-faint); font-weight: 500; margin-bottom: .15rem; }
+.detail-value { font-size: .9375rem; font-weight: 700; }
+
+.status-row {
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; justify-content: center;
+}
+.status-note { font-size: .8125rem; color: var(--text-muted); }
+
+/* Next steps */
+.next-steps {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  width: 100%;
+  text-align: left;
+}
+.next-steps-title { font-size: .9rem; font-weight: 700; margin-bottom: 1rem; }
+.next-steps-list { display: flex; flex-direction: column; gap: .875rem; }
+.next-step {
+  display: flex; align-items: flex-start; gap: .875rem;
+}
+.next-step-dot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid rgba(124 58 237 / .3);
+  color: var(--accent-lt);
+  font-size: .75rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.next-step p { font-size: .875rem; color: var(--text-muted); line-height: 1.55; }
+.next-step strong { color: var(--accent-lt); font-family: var(--font-mono); }
+
+.confirm-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+</style>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Availability — Bookme Admin</title>
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/components.css">
+</head>
+<body>
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark" data-business-initials aria-hidden="true">BT</div>
+      <div class="sidebar-logo-text">Book<span>me</span></div>
+    </div>
+    <nav class="sidebar-nav" role="navigation">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="bookings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Bookings</a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a>
+      <a href="services.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Services</a>
+      <a href="availability.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Availability</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" tabindex="0" role="button" onclick="if(confirm('Sign out?')) API.logout()">
+        <div class="sidebar-avatar" id="sidebar-avatar">DA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Deji Ayomide</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <div class="admin-page-title">Availability</div>
+        <div class="admin-breadcrumb">Set your business hours and blocked dates</div>
+      </div>
+      <div class="admin-header-right">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="availability-grid">
+
+        <!-- Business Hours -->
+        <section aria-labelledby="hours-heading">
+          <div class="section-bar">
+            <h2 class="section-bar-title" id="hours-heading">Business Hours</h2>
+            <button class="btn btn-primary btn-sm" id="save-hours-btn" aria-label="Save business hours">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Hours
+            </button>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <div id="hours-list" role="list" aria-label="Business hours by day">
+              <div class="book-loading" style="padding:2rem"><div class="spinner"></div><span>Loading hours…</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Blocked Dates -->
+        <section aria-labelledby="blocked-heading">
+          <div class="section-bar">
+            <h2 class="section-bar-title" id="blocked-heading">Blocked Dates</h2>
+            <button class="btn btn-primary btn-sm" id="add-blocked-btn" aria-label="Add blocked date">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Block a Date
+            </button>
+          </div>
+          <div class="blocked-dates-list" id="blocked-dates-list" role="list" aria-label="Blocked dates">
+            <div class="book-loading" style="padding:2rem"><div class="spinner"></div><span>Loading…</span></div>
+          </div>
+          <div class="blocked-help">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Blocked dates prevent any bookings from being made on those days.
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Blocked Date Modal -->
+<dialog id="blocked-modal" aria-labelledby="blocked-modal-title">
+  <div class="modal-header">
+    <h2 class="modal-title" id="blocked-modal-title">Block a Date</h2>
+    <button class="modal-close" aria-label="Close" onclick="APP.closeModal('blocked-modal')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <label class="form-label" for="blocked-date">Date <span class="required" aria-hidden="true">*</span></label>
+      <input class="form-input" type="date" id="blocked-date" required aria-describedby="blocked-date-hint">
+      <span class="form-hint" id="blocked-date-hint">Select the date to block for all bookings.</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="blocked-reason">Reason (optional)</label>
+      <input class="form-input" type="text" id="blocked-reason" placeholder="e.g. Public Holiday, Staff Training…">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="APP.closeModal('blocked-modal')">Cancel</button>
+    <button class="btn btn-primary" id="save-blocked-btn">Block Date</button>
+  </div>
+</dialog>
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+API.requireAuth();
+
+let businessHours = [];
+let blockedDates  = [];
+
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+async function load() {
+  const [{ data: bh }, { data: bd }] = await Promise.all([API.getBusinessHours(), API.getBlockedDates()]);
+  businessHours = bh || [];
+  blockedDates  = bd || [];
+  renderHours();
+  renderBlocked();
+}
+
+/* ── Business Hours ─────────────────────────────────── */
+function renderHours() {
+  const list = document.getElementById('hours-list');
+  list.innerHTML = businessHours.map((h, i) => `
+    <div class="hours-row${i > 0 ? ' hours-row-border' : ''}" data-dow="${h.day_of_week}" role="listitem">
+      <label class="toggle hours-toggle" aria-label="Toggle open on ${h.day_name}">
+        <input type="checkbox" class="hours-open-toggle" data-dow="${h.day_of_week}" ${h.is_open ? 'checked' : ''}>
+        <span class="toggle-track"></span>
+      </label>
+      <div class="hours-day${!h.is_open ? ' hours-day-closed' : ''}" aria-label="${h.day_name}">${h.day_name}</div>
+      <div class="hours-times${!h.is_open ? ' disabled-times' : ''}">
+        <input type="time" class="form-input hours-open" data-dow="${h.day_of_week}" value="${h.opening_time}"
+               aria-label="${h.day_name} opening time" ${!h.is_open ? 'disabled' : ''}>
+        <span class="hours-to" aria-hidden="true">to</span>
+        <input type="time" class="form-input hours-close" data-dow="${h.day_of_week}" value="${h.closing_time}"
+               aria-label="${h.day_name} closing time" ${!h.is_open ? 'disabled' : ''}>
+      </div>
+      ${!h.is_open ? '<div class="hours-closed-label">Closed</div>' : '<div></div>'}
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.hours-open-toggle').forEach(toggle => {
+    toggle.addEventListener('change', () => {
+      const dow = Number(toggle.dataset.dow);
+      const idx = businessHours.findIndex(h => h.day_of_week === dow);
+      if (idx !== -1) businessHours[idx].is_open = toggle.checked;
+      renderHours(); // re-render to update disabled state
+    });
+  });
+}
+
+document.getElementById('save-hours-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('save-hours-btn');
+  APP.setButtonLoading(btn, true);
+
+  // Gather current values from DOM
+  document.querySelectorAll('.hours-row').forEach(row => {
+    const dow = Number(row.dataset.dow);
+    const idx = businessHours.findIndex(h => h.day_of_week === dow);
+    if (idx === -1) return;
+    const openToggle = row.querySelector('.hours-open-toggle');
+    const openTime   = row.querySelector('.hours-open');
+    const closeTime  = row.querySelector('.hours-close');
+    if (openToggle)  businessHours[idx].is_open       = openToggle.checked;
+    if (openTime)    businessHours[idx].opening_time  = openTime.value;
+    if (closeTime)   businessHours[idx].closing_time  = closeTime.value;
+  });
+
+  // Save all days
+  await Promise.all(businessHours.map(h =>
+    API.updateBusinessHours(h.day_of_week, { is_open: h.is_open, opening_time: h.opening_time, closing_time: h.closing_time })
+  ));
+  APP.setButtonLoading(btn, false);
+  APP.showToast('Business hours saved.', 'success');
+});
+
+/* ── Blocked Dates ──────────────────────────────────── */
+function renderBlocked() {
+  const list = document.getElementById('blocked-dates-list');
+  if (!blockedDates.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:2rem"><div class="empty-state-icon" aria-hidden="true">✅</div><p class="text-sm text-muted">No blocked dates. All open days are available for bookings.</p></div>`;
+    return;
+  }
+  const sorted = [...blockedDates].sort((a,b) => a.blocked_date.localeCompare(b.blocked_date));
+  list.innerHTML = sorted.map(bd => {
+    const isPast = bd.blocked_date < API.fmt(new Date());
+    return `<div class="blocked-item${isPast ? ' blocked-past' : ''}" role="listitem">
+      <div class="blocked-item-left">
+        <div class="blocked-date-display" aria-label="Blocked date: ${API.formatDate(bd.blocked_date)}">
+          ${API.formatDate(bd.blocked_date)}
+        </div>
+        ${bd.reason ? `<div class="blocked-reason">${APP.escapeHtml(bd.reason)}</div>` : ''}
+        ${isPast ? '<span class="tag" style="align-self:flex-start">Past</span>' : ''}
+      </div>
+      <button class="btn btn-danger btn-sm remove-blocked" data-id="${bd.id}" aria-label="Remove block on ${API.formatDate(bd.blocked_date)}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Remove
+      </button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.remove-blocked').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      APP.setButtonLoading(btn, true);
+      const { error } = await API.removeBlockedDate(btn.dataset.id);
+      if (error) { APP.showToast(error, 'error'); APP.setButtonLoading(btn, false); return; }
+      blockedDates = blockedDates.filter(bd => bd.id !== btn.dataset.id);
+      renderBlocked();
+      APP.showToast('Date unblocked.', 'success');
+    });
+  });
+}
+
+document.getElementById('add-blocked-btn').addEventListener('click', () => {
+  // Default to tomorrow
+  const tom = new Date(); tom.setDate(tom.getDate() + 1);
+  document.getElementById('blocked-date').value = API.fmt(tom);
+  document.getElementById('blocked-reason').value = '';
+  APP.openModal('blocked-modal');
+});
+
+document.getElementById('save-blocked-btn').addEventListener('click', async () => {
+  const date   = document.getElementById('blocked-date').value;
+  const reason = document.getElementById('blocked-reason').value.trim();
+  if (!date) { APP.showToast('Please select a date.', 'warning'); return; }
+  const btn = document.getElementById('save-blocked-btn');
+  APP.setButtonLoading(btn, true);
+  const { data, error } = await API.addBlockedDate({ blocked_date: date, reason });
+  APP.setButtonLoading(btn, false);
+  if (error) { APP.showToast(error, 'error'); return; }
+  blockedDates.push(data);
+  APP.closeModal('blocked-modal');
+  renderBlocked();
+  APP.showToast(`${API.formatDate(date)} blocked.`, 'success');
+});
+
+load();
+</script>
+
+<style>
+.availability-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+.section-bar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: .875rem;
+}
+.section-bar-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+/* Hours */
+.hours-row {
+  display: grid;
+  grid-template-columns: 40px 100px 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+.hours-row-border { border-top: 1px solid var(--border); }
+.hours-toggle { margin: 0; }
+.hours-day { font-size: .9rem; font-weight: 600; }
+.hours-day-closed { color: var(--text-faint); }
+.hours-times {
+  display: flex; align-items: center; gap: .5rem;
+}
+.hours-times .form-input {
+  padding: .4rem .625rem;
+  font-size: .8125rem;
+  width: auto;
+}
+.hours-to { font-size: .8rem; color: var(--text-faint); white-space: nowrap; }
+.disabled-times { opacity: .35; pointer-events: none; }
+.hours-closed-label { font-size: .75rem; color: var(--text-faint); white-space: nowrap; }
+
+/* Blocked dates */
+.blocked-dates-list {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.blocked-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.blocked-item:last-child { border-bottom: none; }
+.blocked-item-left { display: flex; flex-direction: column; gap: .25rem; }
+.blocked-date-display { font-weight: 600; font-size: .9rem; }
+.blocked-reason { font-size: .8125rem; color: var(--text-muted); }
+.blocked-past { opacity: .5; }
+.blocked-help {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .75rem; color: var(--text-faint);
+  margin-top: .75rem;
+}
+
+.book-loading { display: flex; align-items: center; gap: .75rem; color: var(--text-muted); font-size: .875rem; }
+
+@media (max-width: 900px) {
+  .availability-grid { grid-template-columns: 1fr; }
+  .hours-row { grid-template-columns: 40px 90px 1fr; }
+  .hours-row > div:last-child { display: none; }
+}
+@media (max-width: 560px) {
+  .hours-row { grid-template-columns: 36px 1fr; grid-template-rows: auto auto; }
+  .hours-times { grid-column: 1 / -1; }
+}
+</style>
+</body>
+</html>

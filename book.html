@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book an Appointment — Bookme</title>
+  <meta name="description" content="Book your appointment in 3 easy steps. Choose a service, pick a time, and confirm your booking.">
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true"></div>
+
+<!-- ── NAVBAR ─────────────────────────────────────────────────── -->
+<nav class="book-nav" role="navigation" aria-label="Booking navigation">
+  <div class="container book-nav-inner">
+    <a href="index.html" class="nav-logo" aria-label="Back to home">
+      <div class="nav-logo-mark" aria-hidden="true" data-business-initials>BT</div>
+      <span class="nav-logo-name">Book<span>me</span></span>
+    </a>
+    <div class="book-nav-biz" data-business-name>Brain Teaser Educational Consults</div>
+  </div>
+</nav>
+
+<!-- ── BOOKING WIZARD ─────────────────────────────────────────── -->
+<main class="book-main" id="main-content">
+  <div class="container book-container">
+
+    <!-- Step Indicator -->
+    <div class="step-indicator" role="list" aria-label="Booking steps" id="step-indicator">
+      <div class="step active" role="listitem" aria-current="step" id="step-1-indicator">
+        <div class="step-circle" aria-hidden="true">1</div>
+        <div class="step-label">Service</div>
+      </div>
+      <div class="step" role="listitem" id="step-2-indicator">
+        <div class="step-circle" aria-hidden="true">2</div>
+        <div class="step-label">Date &amp; Time</div>
+      </div>
+      <div class="step" role="listitem" id="step-3-indicator">
+        <div class="step-circle" aria-hidden="true">3</div>
+        <div class="step-label">Your Details</div>
+      </div>
+      <div class="step" role="listitem" id="step-4-indicator">
+        <div class="step-circle" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-label">Confirm</div>
+      </div>
+    </div>
+
+    <div class="book-panels">
+      <!-- LEFT: Steps content -->
+      <div class="book-content" id="book-content">
+
+        <!-- ─ STEP 1: Select Service ──────────────────────── -->
+        <section class="book-step" id="step-1" aria-labelledby="step-1-title">
+          <div class="book-step-header">
+            <h1 id="step-1-title" class="book-step-title">Choose a service</h1>
+            <p class="book-step-desc">Select the service that best fits your needs.</p>
+          </div>
+          <div class="services-list" id="services-list" role="radiogroup" aria-label="Available services">
+            <div class="book-loading" aria-label="Loading services">
+              <div class="spinner"></div>
+              <span>Loading services…</span>
+            </div>
+          </div>
+          <div class="book-step-footer">
+            <div></div>
+            <button class="btn btn-primary btn-lg" id="step1-next" disabled>
+              Continue
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ─ STEP 2: Date & Time ─────────────────────────── -->
+        <section class="book-step hidden" id="step-2" aria-labelledby="step-2-title">
+          <div class="book-step-header">
+            <h2 id="step-2-title" class="book-step-title">Pick a date &amp; time</h2>
+            <p class="book-step-desc">Select an available date, then choose your preferred time slot.</p>
+          </div>
+          <div class="date-time-grid">
+            <!-- Calendar -->
+            <div class="calendar-wrapper" role="region" aria-label="Date picker">
+              <div class="calendar-header">
+                <div class="calendar-title" id="cal-title">September 2026</div>
+                <div class="calendar-nav">
+                  <button class="calendar-nav-btn" id="cal-prev" aria-label="Previous month">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                  </button>
+                  <button class="calendar-nav-btn" id="cal-next" aria-label="Next month">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="calendar-grid">
+                <div class="calendar-weekdays" aria-hidden="true">
+                  <div class="calendar-weekday">Su</div>
+                  <div class="calendar-weekday">Mo</div>
+                  <div class="calendar-weekday">Tu</div>
+                  <div class="calendar-weekday">We</div>
+                  <div class="calendar-weekday">Th</div>
+                  <div class="calendar-weekday">Fr</div>
+                  <div class="calendar-weekday">Sa</div>
+                </div>
+                <div class="calendar-days" id="calendar-days" role="grid" aria-label="Calendar"></div>
+              </div>
+            </div>
+
+            <!-- Time Slots -->
+            <div class="time-panel" id="time-panel">
+              <div class="time-panel-header">
+                <h3 class="time-panel-title">Available times</h3>
+                <span class="time-panel-date" id="selected-date-label">Select a date first</span>
+              </div>
+              <div class="time-slots" id="time-slots" role="radiogroup" aria-label="Available time slots">
+                <div class="empty-state" style="padding:2rem 1rem">
+                  <div class="empty-state-icon" aria-hidden="true">🗓️</div>
+                  <p class="text-sm text-muted">Pick a date to see available times</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="book-step-footer">
+            <button class="btn btn-secondary btn-lg" id="step2-back">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <button class="btn btn-primary btn-lg" id="step2-next" disabled>
+              Continue
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ─ STEP 3: Customer Details ────────────────────── -->
+        <section class="book-step hidden" id="step-3" aria-labelledby="step-3-title">
+          <div class="book-step-header">
+            <h2 id="step-3-title" class="book-step-title">Your details</h2>
+            <p class="book-step-desc">We'll use this to confirm your booking.</p>
+          </div>
+          <form id="customer-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="first-name">First name <span class="required" aria-hidden="true">*</span></label>
+                <input class="form-input" type="text" id="first-name" name="first_name" required autocomplete="given-name" placeholder="e.g. Amara">
+                <span class="form-error" role="alert">First name is required</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="last-name">Last name <span class="required" aria-hidden="true">*</span></label>
+                <input class="form-input" type="text" id="last-name" name="last_name" required autocomplete="family-name" placeholder="e.g. Okonkwo">
+                <span class="form-error" role="alert">Last name is required</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">Email address <span class="required" aria-hidden="true">*</span></label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <input class="form-input" type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
+              </div>
+              <span class="form-error" role="alert">Please enter a valid email</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone number</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.8 19.79 19.79 0 01.01 2.19 2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"/></svg>
+                <input class="form-input" type="tel" id="phone" name="phone" autocomplete="tel" placeholder="+234 800 000 0000">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="notes">Additional notes <span class="form-optional">(optional)</span></label>
+              <textarea class="form-textarea" id="notes" name="notes" placeholder="Anything we should know before your session…" rows="3"></textarea>
+            </div>
+          </form>
+          <div class="book-step-footer">
+            <button class="btn btn-secondary btn-lg" id="step3-back">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <button class="btn btn-primary btn-lg" id="step3-next">
+              Review Booking
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ─ STEP 4: Confirm ─────────────────────────────── -->
+        <section class="book-step hidden" id="step-4" aria-labelledby="step-4-title">
+          <div class="book-step-header">
+            <h2 id="step-4-title" class="book-step-title">Review &amp; confirm</h2>
+            <p class="book-step-desc">Check your details below and click Confirm to lock in your appointment.</p>
+          </div>
+          <div class="confirm-grid">
+            <div class="confirm-section">
+              <div class="confirm-section-title">Service</div>
+              <div id="confirm-service" class="confirm-value"></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">Date &amp; Time</div>
+              <div id="confirm-datetime" class="confirm-value"></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">Duration</div>
+              <div id="confirm-duration" class="confirm-value"></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">Price</div>
+              <div id="confirm-price" class="confirm-value text-accent"></div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);margin-block:1.25rem"></div>
+          <div class="confirm-grid">
+            <div class="confirm-section">
+              <div class="confirm-section-title">Name</div>
+              <div id="confirm-name" class="confirm-value"></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">Email</div>
+              <div id="confirm-email" class="confirm-value"></div>
+            </div>
+            <div class="confirm-section">
+              <div class="confirm-section-title">Phone</div>
+              <div id="confirm-phone" class="confirm-value"></div>
+            </div>
+            <div id="confirm-notes-wrap" class="confirm-section" style="display:none">
+              <div class="confirm-section-title">Notes</div>
+              <div id="confirm-notes" class="confirm-value"></div>
+            </div>
+          </div>
+          <div class="book-step-footer">
+            <button class="btn btn-secondary btn-lg" id="step4-back">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <button class="btn btn-primary btn-xl" id="confirm-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span class="btn-text">Confirm Booking</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT: Summary sidebar -->
+      <aside class="book-sidebar" aria-label="Booking summary" id="book-sidebar">
+        <div class="book-summary-card">
+          <div class="bsc-header">
+            <h3 class="bsc-title">Booking Summary</h3>
+          </div>
+          <div class="bsc-body">
+            <div class="bsc-placeholder" id="bsc-placeholder">
+              <div class="empty-state-icon" aria-hidden="true">📋</div>
+              <p class="text-sm text-muted">Your selection will appear here</p>
+            </div>
+            <div id="bsc-content" style="display:none">
+              <div class="bsc-service" id="bsc-service"></div>
+              <div class="bsc-rows" id="bsc-rows"></div>
+              <div class="bsc-price-row" id="bsc-price-row" style="display:none">
+                <span>Total</span>
+                <span id="bsc-total" class="bsc-price"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bsc-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          No payment required. Pay on the day of your session.
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* ── State ──────────────────────────────────────────────────── */
+const state = {
+  step: 1,
+  service: null,
+  date: null,
+  time: null,
+  customer: {},
+  calMonth: new Date().getMonth(),
+  calYear:  new Date().getFullYear(),
+  blockedDates: [],
+  businessHours: [],
+};
+
+/* ── Step navigation ────────────────────────────────────────── */
+function goToStep(n) {
+  document.querySelectorAll('.book-step').forEach((el, i) => {
+    el.classList.toggle('hidden', i + 1 !== n);
+  });
+  // Update step indicators
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i + 1 < n)  el.classList.add('done');
+    if (i + 1 === n) el.classList.add('active');
+    el.removeAttribute('aria-current');
+    if (i + 1 === n) el.setAttribute('aria-current', 'step');
+  });
+  state.step = n;
+  updateSidebar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Sidebar summary ────────────────────────────────────────── */
+function updateSidebar() {
+  const placeholder = document.getElementById('bsc-placeholder');
+  const content     = document.getElementById('bsc-content');
+  if (!state.service) {
+    placeholder.style.display = 'flex';
+    content.style.display = 'none';
+    return;
+  }
+  placeholder.style.display = 'none';
+  content.style.display = 'block';
+  document.getElementById('bsc-service').innerHTML = `
+    <div class="bsc-service-icon" aria-hidden="true">${APP.escapeHtml(state.service.icon || '📋')}</div>
+    <div>
+      <div class="bsc-service-name">${APP.escapeHtml(state.service.name)}</div>
+      <div class="bsc-service-dur">${state.service.duration_minutes} min</div>
+    </div>`;
+  const rows = [];
+  if (state.date) rows.push(`<div class="bsc-row"><span>Date</span><span>${API.formatDate(state.date)}</span></div>`);
+  if (state.time) rows.push(`<div class="bsc-row"><span>Time</span><span>${API.formatTime(state.time)}</span></div>`);
+  document.getElementById('bsc-rows').innerHTML = rows.join('');
+  const priceRow = document.getElementById('bsc-price-row');
+  priceRow.style.display = 'flex';
+  document.getElementById('bsc-total').textContent = API.formatCurrency(state.service.price);
+}
+
+/* ── Step 1: Services ───────────────────────────────────────── */
+async function loadServices() {
+  const list = document.getElementById('services-list');
+  const { data: services, error } = await API.getServices();
+  if (error || !services.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">😕</div><p>No services available right now.</p></div>';
+    return;
+  }
+  list.innerHTML = services.map(svc => `
+    <div class="service-card" role="radio" aria-checked="false" tabindex="0" data-id="${svc.id}"
+         aria-label="${APP.escapeHtml(svc.name)}, ${API.formatCurrency(svc.price)}, ${svc.duration_minutes} minutes">
+      <div class="service-card-check" aria-hidden="true">✓</div>
+      <div class="service-icon" aria-hidden="true">${APP.escapeHtml(svc.icon || '📋')}</div>
+      <div class="service-info">
+        <div class="service-name">${APP.escapeHtml(svc.name)}</div>
+        <div class="service-desc">${APP.escapeHtml(svc.description)}</div>
+        <div class="service-meta">
+          <span class="service-meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${svc.duration_minutes} min
+          </span>
+        </div>
+        <div class="service-price">${API.formatCurrency(svc.price)}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Check if service pre-selected via URL param
+  const params = new URLSearchParams(window.location.search);
+  const preId  = params.get('service');
+  if (preId) {
+    const el = list.querySelector(`[data-id="${preId}"]`);
+    if (el) selectService(el, preId, services);
+  }
+
+  list.querySelectorAll('.service-card').forEach(card => {
+    const id = card.dataset.id;
+    const svc = services.find(s => s.id === id);
+    card.addEventListener('click', () => selectService(card, id, services, list));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectService(card, id, services, list); }
+    });
+  });
+}
+
+function selectService(card, id, services, list) {
+  document.querySelectorAll('.service-card').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-checked', 'false');
+  });
+  card.classList.add('selected');
+  card.setAttribute('aria-checked', 'true');
+  state.service = services.find(s => s.id === id);
+  document.getElementById('step1-next').disabled = false;
+  updateSidebar();
+}
+
+document.getElementById('step1-next').addEventListener('click', () => {
+  if (!state.service) return;
+  goToStep(2);
+  renderCalendar();
+});
+
+/* ── Step 2: Calendar ───────────────────────────────────────── */
+async function initCalendar() {
+  const [{ data: bh }, { data: bd }] = await Promise.all([
+    API.getBusinessHours(), API.getBlockedDates()
+  ]);
+  state.businessHours = bh || [];
+  state.blockedDates  = (bd || []).map(d => d.blocked_date);
+}
+initCalendar();
+
+function renderCalendar() {
+  const year  = state.calYear;
+  const month = state.calMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent = `${monthNames[month]} ${year}`;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const maxDate = new Date(today);
+  const cfg = window.BUSINESS_CONFIG || {};
+  maxDate.setDate(maxDate.getDate() + (cfg.maxBookingDaysAhead || 60));
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="calendar-day empty" aria-hidden="true"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    date.setHours(0,0,0,0);
+    const dateStr  = API.fmt(date);
+    const isPast   = date < today;
+    const isTooFar = date > maxDate;
+    const isTodayD = dateStr === API.fmt(today);
+    const dow      = date.getDay();
+    const bh       = state.businessHours.find(h => h.day_of_week === dow);
+    const isBlocked = state.blockedDates.includes(dateStr);
+    const isClosed  = !bh || !bh.is_open;
+    const isSelected = dateStr === state.date;
+
+    const cls = [
+      'calendar-day',
+      isPast || isTooFar ? 'past' : '',
+      isBlocked ? 'blocked' : '',
+      isClosed && !isPast ? 'disabled' : '',
+      isTodayD ? 'today' : '',
+      isSelected ? 'selected' : '',
+    ].filter(Boolean).join(' ');
+
+    const label = `${d} ${monthNames[month]}, ${year}${isTodayD ? ' (today)' : ''}${isPast ? ' (past)' : ''}${isBlocked ? ' (blocked)' : ''}${isClosed ? ' (closed)' : ''}`;
+
+    html += `<button class="${cls}" data-date="${dateStr}" aria-label="${label}"${(isPast||isTooFar||isBlocked||isClosed)?'disabled':''}>
+      ${d}
+    </button>`;
+  }
+
+  document.getElementById('calendar-days').innerHTML = html;
+  document.querySelectorAll('.calendar-day:not(.past):not(.disabled):not(.blocked):not(.empty)').forEach(btn => {
+    btn.addEventListener('click', () => selectDate(btn.dataset.date));
+  });
+
+  // Prev/next bounds
+  document.getElementById('cal-prev').disabled = (year === today.getFullYear() && month <= today.getMonth());
+  document.getElementById('cal-next').disabled = (year === maxDate.getFullYear() && month >= maxDate.getMonth());
+}
+
+document.getElementById('cal-prev').addEventListener('click', () => {
+  state.calMonth--;
+  if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', () => {
+  state.calMonth++;
+  if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  renderCalendar();
+});
+
+async function selectDate(dateStr) {
+  state.date = dateStr;
+  state.time = null;
+  document.getElementById('step2-next').disabled = true;
+  // Highlight selected day
+  document.querySelectorAll('.calendar-day').forEach(b => b.classList.toggle('selected', b.dataset.date === dateStr));
+  // Update date label
+  document.getElementById('selected-date-label').textContent = API.formatDate(dateStr);
+  // Load slots
+  const slotsEl = document.getElementById('time-slots');
+  slotsEl.innerHTML = '<div class="book-loading"><div class="spinner"></div><span>Loading slots…</span></div>';
+  const { data: slots } = await API.getAvailableSlots(state.service.id, dateStr);
+  const available = (slots || []).filter(s => s.available);
+  if (!available.length) {
+    slotsEl.innerHTML = `<div class="empty-state" style="padding:1.5rem .5rem">
+      <div class="empty-state-icon" aria-hidden="true">🚫</div>
+      <p class="text-sm text-muted">No available slots on this date.<br>Please choose another day.</p>
+    </div>`;
+    return;
+  }
+  slotsEl.innerHTML = slots.map(slot => `
+    <button class="time-slot${!slot.available ? ' taken' : ''}"
+            data-time="${slot.time}"
+            ${!slot.available ? 'disabled aria-disabled="true"' : ''}
+            aria-label="${slot.display}${!slot.available ? ' (unavailable)' : ''}">
+      ${slot.display}
+    </button>
+  `).join('');
+  slotsEl.querySelectorAll('.time-slot:not(.taken)').forEach(btn => {
+    btn.addEventListener('click', () => selectTime(btn.dataset.time, slotsEl));
+  });
+}
+
+function selectTime(time, slotsEl) {
+  state.time = time;
+  (slotsEl || document.getElementById('time-slots')).querySelectorAll('.time-slot').forEach(b => {
+    b.classList.toggle('selected', b.dataset.time === time);
+  });
+  document.getElementById('step2-next').disabled = false;
+  updateSidebar();
+}
+
+document.getElementById('step2-back').addEventListener('click', () => goToStep(1));
+document.getElementById('step2-next').addEventListener('click', () => {
+  if (!state.date || !state.time) return;
+  goToStep(3);
+});
+
+/* ── Step 3: Customer Form ──────────────────────────────────── */
+document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
+document.getElementById('step3-next').addEventListener('click', () => {
+  const form = document.getElementById('customer-form');
+  if (!form.checkValidity()) {
+    form.querySelectorAll(':invalid').forEach(el => el.focus && el.focus());
+    APP.showToast('Please fill in all required fields.', 'warning');
+    return;
+  }
+  const fd = new FormData(form);
+  state.customer = {
+    first_name: fd.get('first_name'),
+    last_name:  fd.get('last_name'),
+    email:      fd.get('email'),
+    phone:      fd.get('phone'),
+    notes:      fd.get('notes'),
+  };
+  // Populate confirm screen
+  document.getElementById('confirm-service').innerHTML  = `<strong>${APP.escapeHtml(state.service.name)}</strong> <span class="text-muted">(${state.service.duration_minutes} min)</span>`;
+  document.getElementById('confirm-datetime').textContent = `${API.formatDate(state.date)} at ${API.formatTime(state.time)}`;
+  document.getElementById('confirm-duration').textContent = `${state.service.duration_minutes} minutes`;
+  document.getElementById('confirm-price').textContent    = API.formatCurrency(state.service.price);
+  document.getElementById('confirm-name').textContent     = `${state.customer.first_name} ${state.customer.last_name}`;
+  document.getElementById('confirm-email').textContent    = state.customer.email;
+  document.getElementById('confirm-phone').textContent    = state.customer.phone || '—';
+  if (state.customer.notes) {
+    document.getElementById('confirm-notes-wrap').style.display = 'block';
+    document.getElementById('confirm-notes').textContent = state.customer.notes;
+  }
+  goToStep(4);
+});
+
+/* ── Step 4: Confirm ────────────────────────────────────────── */
+document.getElementById('step4-back').addEventListener('click', () => goToStep(3));
+document.getElementById('confirm-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('confirm-btn');
+  APP.setButtonLoading(btn, true);
+  try {
+    // Create/find customer
+    const { data: customer, error: ce } = await API.createCustomer(state.customer);
+    if (ce && !customer) throw new Error(ce);
+    // Create booking
+    const { data: booking, error: be } = await API.createBooking({
+      customer_id:  customer.id,
+      service_id:   state.service.id,
+      booking_date: state.date,
+      start_time:   state.time,
+      notes:        state.customer.notes,
+    });
+    if (be) throw new Error(be);
+    // Redirect to confirmation
+    const params = new URLSearchParams({
+      ref:     booking.booking_reference,
+      name:    `${state.customer.first_name} ${state.customer.last_name}`,
+      service: state.service.name,
+      date:    state.date,
+      time:    state.time,
+      price:   state.service.price,
+    });
+    window.location.href = `confirmation.html?${params}`;
+  } catch (err) {
+    APP.showToast(err.message || 'Something went wrong. Please try again.', 'error', 5000);
+    APP.setButtonLoading(btn, false);
+  }
+});
+
+/* ── Init ───────────────────────────────────────────────────── */
+loadServices();
+</script>
+
+<style>
+/* Nav */
+.book-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 60px;
+  background: rgba(7 7 15 / .85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.book-nav-inner {
+  display: flex; align-items: center; justify-content: space-between; height: 100%;
+}
+.nav-logo { display: flex; align-items: center; gap: .625rem; }
+.nav-logo-mark {
+  width: 32px; height: 32px; border-radius: var(--r-md);
+  background: linear-gradient(135deg in oklch, var(--accent-lt), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: .75rem; color: #fff;
+  box-shadow: 0 4px 10px var(--accent-glow);
+}
+.nav-logo-name { font-size: 1rem; font-weight: 800; letter-spacing: -0.04em; }
+.nav-logo-name span { color: var(--accent-lt); }
+.book-nav-biz {
+  font-size: .8125rem; color: var(--text-muted); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;
+}
+
+/* Main layout */
+.book-main { padding-top: 60px; min-height: 100vh; }
+.book-container { padding-block: 2.5rem; }
+
+/* Step indicator */
+.step-indicator {
+  max-width: 560px; margin: 0 auto 2.5rem;
+}
+
+/* Panels */
+.book-panels {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+.book-content { min-width: 0; }
+.book-step { display: flex; flex-direction: column; gap: 1.5rem; animation: fadeIn var(--ease-base); }
+.book-step.hidden { display: none; }
+
+.book-step-header {}
+.book-step-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: .375rem; }
+.book-step-desc  { font-size: .9rem; color: var(--text-muted); }
+
+.book-loading {
+  display: flex; align-items: center; gap: .75rem;
+  color: var(--text-muted); font-size: .875rem; padding: 1rem;
+}
+
+/* Services list */
+.services-list { display: flex; flex-direction: column; gap: .75rem; }
+
+/* Date-time grid */
+.date-time-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+}
+.time-panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.time-panel-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.time-panel-title { font-size: .9rem; font-weight: 700; margin-bottom: .25rem; }
+.time-panel-date  { font-size: .75rem; color: var(--text-faint); }
+.time-slots { padding: .875rem; max-height: 340px; overflow-y: auto; }
+
+/* Form */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-optional { color: var(--text-faint); font-size: .8em; font-weight: 400; }
+
+/* Confirm */
+.confirm-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.confirm-section {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 1rem;
+}
+.confirm-section-title { font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--text-faint); margin-bottom: .375rem; }
+.confirm-value { font-size: .9375rem; font-weight: 600; }
+
+/* Step footer */
+.book-step-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding-top: .5rem;
+}
+
+/* Sidebar */
+.book-summary-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  position: sticky; top: calc(60px + 1.5rem);
+}
+.bsc-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.bsc-title { font-size: .9rem; font-weight: 700; }
+.bsc-body { padding: 1.25rem; }
+.bsc-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .625rem; padding: 1.5rem 1rem; text-align: center;
+}
+.bsc-service {
+  display: flex; align-items: center; gap: .875rem;
+  padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: .875rem;
+}
+.bsc-service-icon {
+  font-size: 1.5rem; width: 44px; height: 44px;
+  background: var(--accent-dim); border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.bsc-service-name { font-size: .9375rem; font-weight: 700; margin-bottom: .2rem; }
+.bsc-service-dur  { font-size: .75rem; color: var(--text-muted); }
+.bsc-rows { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .875rem; }
+.bsc-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .8125rem;
+}
+.bsc-row span:first-child { color: var(--text-muted); }
+.bsc-row span:last-child  { font-weight: 600; }
+.bsc-price-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: .875rem; border-top: 1px solid var(--border);
+  font-size: .875rem; font-weight: 700;
+}
+.bsc-price { font-size: 1.125rem; font-weight: 800; color: var(--accent-lt); }
+.bsc-note {
+  display: flex; align-items: flex-start; gap: .5rem;
+  font-size: .75rem; color: var(--text-faint);
+  padding: .875rem 1.25rem; line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .book-panels { grid-template-columns: 1fr; }
+  .book-sidebar { order: -1; }
+  .book-summary-card { position: static; }
+}
+@media (max-width: 680px) {
+  .date-time-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .confirm-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .step-label { display: none; }
+}
+</style>
+</body>
+</html>

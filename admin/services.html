@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — Bookme Admin</title>
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/components.css">
+</head>
+<body>
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark" data-business-initials aria-hidden="true">BT</div>
+      <div class="sidebar-logo-text">Book<span>me</span></div>
+    </div>
+    <nav class="sidebar-nav" role="navigation">
+      <a href="dashboard.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="bookings.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Bookings</a>
+      <a href="customers.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a>
+      <a href="services.html" class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Services</a>
+      <a href="availability.html" class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Availability</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" tabindex="0" role="button" onclick="if(confirm('Sign out?')) API.logout()">
+        <div class="sidebar-avatar" id="sidebar-avatar">DA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Deji Ayomide</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <div class="admin-page-title">Services</div>
+        <div class="admin-breadcrumb">Manage your service offerings</div>
+      </div>
+      <div class="admin-header-right">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <button class="btn btn-primary btn-sm" id="add-service-btn" aria-label="Add new service">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Service
+        </button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <!-- Info bar -->
+      <div class="info-bar">
+        <div style="display:flex;align-items:center;gap:.5rem;font-size:.8125rem;color:var(--text-muted)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Active services are visible to customers on the booking page. Inactive services are hidden.
+        </div>
+        <div>
+          <span class="text-muted text-sm" role="status" aria-live="polite"><strong id="active-count">0</strong> active / <strong id="total-count">0</strong> total</span>
+        </div>
+      </div>
+
+      <!-- Services grid -->
+      <div class="services-admin-grid" id="services-grid" aria-label="Services list">
+        <div class="book-loading" style="padding:2rem"><div class="spinner"></div><span>Loading services…</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Service Modal -->
+<dialog id="service-modal" aria-labelledby="service-modal-title">
+  <div class="modal-header">
+    <h2 class="modal-title" id="service-modal-title">Add Service</h2>
+    <button class="modal-close" aria-label="Close" onclick="APP.closeModal('service-modal')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form id="service-form" novalidate>
+      <input type="hidden" id="edit-service-id">
+      <div class="form-group">
+        <label class="form-label" for="s-name">Service name <span class="required" aria-hidden="true">*</span></label>
+        <input class="form-input" type="text" id="s-name" required placeholder="e.g. Initial Consultation">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="s-desc">Description <span class="required" aria-hidden="true">*</span></label>
+        <textarea class="form-textarea" id="s-desc" required rows="2" placeholder="What does this service include?"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label class="form-label" for="s-duration">Duration (minutes) <span class="required" aria-hidden="true">*</span></label>
+          <input class="form-input" type="number" id="s-duration" required min="5" max="480" step="5" placeholder="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="s-price">Price <span class="required" aria-hidden="true">*</span></label>
+          <div class="input-wrapper">
+            <span class="input-icon" style="font-size:.875rem;font-weight:700" id="currency-sym">₦</span>
+            <input class="form-input" type="number" id="s-price" required min="0" placeholder="0">
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label class="form-label" for="s-icon">Icon (emoji)</label>
+          <input class="form-input" type="text" id="s-icon" maxlength="4" placeholder="📋">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="toggle" for="s-active">
+          <input type="checkbox" id="s-active" checked>
+          <span class="toggle-track"></span>
+          <span class="toggle-label">Active (visible to customers)</span>
+        </label>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="APP.closeModal('service-modal')">Cancel</button>
+    <button class="btn btn-primary" id="save-service-btn">Save Service</button>
+  </div>
+</dialog>
+
+<!-- Delete confirm modal -->
+<dialog id="delete-modal" aria-labelledby="delete-modal-title">
+  <div class="modal-header">
+    <h2 class="modal-title" id="delete-modal-title">Delete Service</h2>
+    <button class="modal-close" aria-label="Close" onclick="APP.closeModal('delete-modal')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p style="color:var(--text-muted)">Are you sure you want to delete <strong id="delete-service-name" style="color:var(--text)"></strong>? This action cannot be undone.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="APP.closeModal('delete-modal')">Cancel</button>
+    <button class="btn btn-danger" id="confirm-delete-btn">Delete Service</button>
+  </div>
+</dialog>
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+API.requireAuth();
+
+// Set currency symbol
+const cfg = window.BUSINESS_CONFIG || {};
+const currSym = cfg.currencySymbol || '₦';
+document.getElementById('currency-sym').textContent = currSym;
+
+let allServices = [];
+let deletingId = null;
+
+async function load() {
+  const { data } = await API.getServices(true); // include inactive
+  allServices = data || [];
+  render();
+}
+
+function render() {
+  const grid = document.getElementById('services-grid');
+  const active = allServices.filter(s => s.is_active).length;
+  document.getElementById('active-count').textContent = active;
+  document.getElementById('total-count').textContent  = allServices.length;
+
+  if (!allServices.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon" aria-hidden="true">📋</div><p class="text-sm text-muted">No services yet. Add your first service to get started.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = allServices.map(svc => `
+    <article class="service-admin-card" role="region" aria-label="${APP.escapeHtml(svc.name)}">
+      <div class="sac-top">
+        <div class="sac-icon" aria-hidden="true">${APP.escapeHtml(svc.icon || '📋')}</div>
+        <div style="flex:1;min-width:0">
+          <div class="sac-name">${APP.escapeHtml(svc.name)}</div>
+          <span class="${svc.is_active ? 'badge badge-active' : 'badge badge-inactive'}">${svc.is_active ? 'Active' : 'Inactive'}</span>
+        </div>
+        <div class="sac-actions">
+          <button class="btn btn-ghost btn-sm edit-svc" data-id="${svc.id}" aria-label="Edit ${APP.escapeHtml(svc.name)}">Edit</button>
+          <button class="btn btn-danger btn-sm delete-svc" data-id="${svc.id}" aria-label="Delete ${APP.escapeHtml(svc.name)}">Delete</button>
+        </div>
+      </div>
+      <p class="sac-desc">${APP.escapeHtml(svc.description)}</p>
+      <div class="sac-footer">
+        <div class="sac-meta">
+          <span class="sac-meta-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${svc.duration_minutes} min
+          </span>
+        </div>
+        <span class="sac-price">${API.formatCurrency(svc.price)}</span>
+      </div>
+      <div class="toggle-row">
+        <label class="toggle" aria-label="Toggle active status for ${APP.escapeHtml(svc.name)}">
+          <input type="checkbox" class="toggle-active" data-id="${svc.id}" ${svc.is_active ? 'checked' : ''}>
+          <span class="toggle-track"></span>
+          <span class="toggle-label" style="font-size:.8rem">Accepting bookings</span>
+        </label>
+      </div>
+    </article>
+  `).join('');
+
+  grid.querySelectorAll('.edit-svc').forEach(btn => btn.addEventListener('click', () => openEdit(btn.dataset.id)));
+  grid.querySelectorAll('.delete-svc').forEach(btn => btn.addEventListener('click', () => openDelete(btn.dataset.id)));
+  grid.querySelectorAll('.toggle-active').forEach(toggle => {
+    toggle.addEventListener('change', async () => {
+      const { error } = await API.updateService(toggle.dataset.id, { is_active: toggle.checked });
+      if (error) { APP.showToast(error, 'error'); toggle.checked = !toggle.checked; return; }
+      const idx = allServices.findIndex(s => s.id === toggle.dataset.id);
+      if (idx !== -1) allServices[idx].is_active = toggle.checked;
+      APP.showToast(toggle.checked ? 'Service activated.' : 'Service deactivated.', 'success');
+      render();
+    });
+  });
+}
+
+function openEdit(id) {
+  const svc = id ? allServices.find(s => s.id === id) : null;
+  document.getElementById('service-modal-title').textContent = svc ? 'Edit Service' : 'Add Service';
+  document.getElementById('edit-service-id').value = id || '';
+  document.getElementById('s-name').value     = svc?.name             || '';
+  document.getElementById('s-desc').value     = svc?.description      || '';
+  document.getElementById('s-duration').value = svc?.duration_minutes || 60;
+  document.getElementById('s-price').value    = svc?.price            || 0;
+  document.getElementById('s-icon').value     = svc?.icon             || '';
+  document.getElementById('s-active').checked = svc ? svc.is_active   : true;
+  APP.openModal('service-modal');
+}
+
+function openDelete(id) {
+  deletingId = id;
+  const svc = allServices.find(s => s.id === id);
+  document.getElementById('delete-service-name').textContent = svc?.name || '';
+  APP.openModal('delete-modal');
+}
+
+document.getElementById('add-service-btn').addEventListener('click', () => openEdit(null));
+
+document.getElementById('save-service-btn').addEventListener('click', async () => {
+  const form = document.getElementById('service-form');
+  if (!form.checkValidity()) { APP.showToast('Fill in required fields.', 'warning'); return; }
+  const btn = document.getElementById('save-service-btn');
+  APP.setButtonLoading(btn, true);
+  const payload = {
+    name:             document.getElementById('s-name').value.trim(),
+    description:      document.getElementById('s-desc').value.trim(),
+    duration_minutes: Number(document.getElementById('s-duration').value),
+    price:            Number(document.getElementById('s-price').value),
+    icon:             document.getElementById('s-icon').value.trim() || '📋',
+    is_active:        document.getElementById('s-active').checked,
+  };
+  const id = document.getElementById('edit-service-id').value;
+  const { error } = id ? await API.updateService(id, payload) : await API.createService(payload);
+  APP.setButtonLoading(btn, false);
+  if (error) { APP.showToast(error, 'error'); return; }
+  APP.closeModal('service-modal');
+  APP.showToast(id ? 'Service updated.' : 'Service created.', 'success');
+  await load();
+});
+
+document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+  if (!deletingId) return;
+  const btn = document.getElementById('confirm-delete-btn');
+  APP.setButtonLoading(btn, true);
+  await API.deleteService(deletingId);
+  APP.setButtonLoading(btn, false);
+  APP.closeModal('delete-modal');
+  APP.showToast('Service deleted.', 'success');
+  await load();
+});
+
+load();
+</script>
+
+<style>
+.info-bar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem;
+  padding: .875rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.services-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+.service-admin-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.25rem;
+  display: flex; flex-direction: column; gap: .875rem;
+  transition: border-color var(--ease-base);
+}
+.service-admin-card:hover { border-color: var(--border-md); }
+.sac-top { display: flex; align-items: flex-start; gap: .875rem; }
+.sac-icon {
+  font-size: 1.5rem; width: 48px; height: 48px;
+  border-radius: var(--r-md); background: var(--accent-dim);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sac-name { font-size: 1rem; font-weight: 700; margin-bottom: .375rem; letter-spacing: -0.01em; }
+.sac-actions { display: flex; gap: .375rem; flex-shrink: 0; }
+.sac-desc { font-size: .8125rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
+.sac-footer { display: flex; justify-content: space-between; align-items: center; }
+.sac-meta { display: flex; gap: .75rem; }
+.sac-meta-item { display: flex; align-items: center; gap: .25rem; font-size: .75rem; color: var(--text-faint); font-weight: 500; }
+.sac-price { font-size: 1.1rem; font-weight: 800; color: var(--accent-lt); }
+.toggle-row { padding-top: .75rem; border-top: 1px solid var(--border); }
+.book-loading { display: flex; align-items: center; gap: .75rem; color: var(--text-muted); font-size: .875rem; }
+</style>
+</body>
+</html>

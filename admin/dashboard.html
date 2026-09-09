@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Bookme Admin</title>
+  <meta name="description" content="Admin dashboard for Bookme booking management.">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="../styles/components.css">
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark" aria-hidden="true" data-business-initials>BT</div>
+      <div class="sidebar-logo-text">Book<span>me</span></div>
+    </div>
+    <nav class="sidebar-nav" role="navigation" aria-label="Main admin navigation">
+      <a href="dashboard.html" class="nav-item active" aria-label="Dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="bookings.html" class="nav-item" aria-label="Bookings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        Bookings
+        <span class="nav-badge" id="pending-badge" aria-label="pending bookings">0</span>
+      </a>
+      <a href="customers.html" class="nav-item" aria-label="Customers">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Customers
+      </a>
+      <a href="services.html" class="nav-item" aria-label="Services">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Services
+      </a>
+      <a href="availability.html" class="nav-item" aria-label="Availability">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Availability
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="../index.html" class="nav-item" style="margin-bottom:.25rem" aria-label="Go to public booking page">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Public Page
+      </a>
+      <div class="sidebar-user" tabindex="0" role="button" aria-label="User menu" id="user-menu" onclick="if(confirm('Sign out?')) API.logout()">
+        <div class="sidebar-avatar" id="sidebar-avatar">DA</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Deji Ayomide</div>
+          <div class="sidebar-user-role">Administrator</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-faint);flex-shrink:0" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── MAIN ───────────────────────────────────────────────── -->
+  <div class="admin-main">
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <div class="admin-page-title">Dashboard</div>
+        <div class="admin-breadcrumb" id="today-date-label">Overview</div>
+      </div>
+      <div class="admin-header-right">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle sidebar" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <a href="../book.html" class="btn btn-primary btn-sm" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Booking
+        </a>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- Stat cards -->
+      <div class="stat-cards-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+        <div class="stat-card">
+          <div class="stat-card-bg-accent"></div>
+          <div class="stat-card-icon" style="background:var(--accent-dim);color:var(--accent-lt)" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="stat-card-value" id="stat-today">—</div>
+          <div class="stat-card-label">Today's Bookings</div>
+          <div class="stat-card-trend trend-up" id="trend-today" aria-label="Today's bookings trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+            Today
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--success-bg);color:var(--success)" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+          <div class="stat-card-value" id="stat-customers">—</div>
+          <div class="stat-card-label">Total Customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--warning-bg);color:var(--warning)" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-card-value" id="stat-pending">—</div>
+          <div class="stat-card-label">Pending</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon" style="background:var(--info-bg);color:var(--info)" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          </div>
+          <div class="stat-card-value" id="stat-revenue">—</div>
+          <div class="stat-card-label">Revenue (This Month)</div>
+        </div>
+      </div>
+
+      <!-- Today's appointments + Upcoming -->
+      <div class="dashboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+
+        <!-- Today's appointments -->
+        <section aria-labelledby="today-heading">
+          <div class="section-bar">
+            <h2 class="section-bar-title" id="today-heading">Today's Appointments</h2>
+            <a href="bookings.html" class="btn btn-ghost btn-sm">View all →</a>
+          </div>
+          <div class="table-wrapper" id="today-table">
+            <div class="book-loading" style="padding:1.5rem"><div class="spinner"></div><span>Loading…</span></div>
+          </div>
+        </section>
+
+        <!-- Upcoming appointments -->
+        <section aria-labelledby="upcoming-heading">
+          <div class="section-bar">
+            <h2 class="section-bar-title" id="upcoming-heading">Upcoming (Next 7 Days)</h2>
+            <a href="bookings.html" class="btn btn-ghost btn-sm">View all →</a>
+          </div>
+          <div class="table-wrapper" id="upcoming-table">
+            <div class="book-loading" style="padding:1.5rem"><div class="spinner"></div><span>Loading…</span></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Recent Customers -->
+      <section aria-labelledby="customers-heading">
+        <div class="section-bar">
+          <h2 class="section-bar-title" id="customers-heading">Recent Customers</h2>
+          <a href="customers.html" class="btn btn-ghost btn-sm">View all →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Joined</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr><td colspan="5"><div class="book-loading" style="padding:1rem"><div class="spinner"></div><span>Loading…</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+</div><!-- /admin-layout -->
+
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/app.js"></script>
+<script>
+API.requireAuth();
+
+// Set today label
+const today = new Date();
+document.getElementById('today-date-label').textContent =
+  today.toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+async function loadDashboard() {
+  const [{ data: stats }, { data: allBookings }, { data: customers }] = await Promise.all([
+    API.getDashboardStats(),
+    API.getBookings(),
+    API.getCustomers(),
+  ]);
+
+  // Stats
+  document.getElementById('stat-today').textContent     = stats.todayCount;
+  document.getElementById('stat-customers').textContent  = stats.totalCustomers;
+  document.getElementById('stat-pending').textContent    = stats.pendingCount;
+  document.getElementById('stat-revenue').textContent    = API.formatCurrency(stats.monthRevenue);
+  const badge = document.getElementById('pending-badge');
+  badge.textContent = stats.pendingCount;
+  badge.style.display = stats.pendingCount > 0 ? 'inline-flex' : 'none';
+
+  // Today's bookings
+  const todayStr = API.fmt(new Date());
+  const todayBks = (allBookings || []).filter(b => b.booking_date === todayStr);
+  renderMiniTable(document.getElementById('today-table'), todayBks, customers, 'No appointments today.');
+
+  // Upcoming (next 7 days, excluding today)
+  const tom = new Date(); tom.setDate(tom.getDate() + 1);
+  const max = new Date(); max.setDate(max.getDate() + 7);
+  const upcoming = (allBookings || []).filter(b =>
+    b.booking_date > todayStr &&
+    b.booking_date <= API.fmt(max) &&
+    b.status !== 'CANCELLED'
+  );
+  renderMiniTable(document.getElementById('upcoming-table'), upcoming, customers, 'No upcoming appointments in the next 7 days.');
+
+  // Customers (most recent 6)
+  const tbody = document.getElementById('customers-tbody');
+  const recentCustomers = [...(customers || [])].slice(-6).reverse();
+  if (!recentCustomers.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-sm" style="text-align:center;padding:1.5rem">No customers yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = recentCustomers.map(c => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--accent-lt);flex-shrink:0;letter-spacing:-.02em" aria-hidden="true">
+            ${APP.escapeHtml(c.first_name[0])}${APP.escapeHtml(c.last_name[0])}
+          </div>
+          <span style="font-weight:600">${APP.escapeHtml(c.first_name)} ${APP.escapeHtml(c.last_name)}</span>
+        </div>
+      </td>
+      <td class="text-muted">${APP.escapeHtml(c.email)}</td>
+      <td class="text-muted">${APP.escapeHtml(c.phone || '—')}</td>
+      <td class="text-muted">${API.formatDate(c.created_at?.split('T')[0] || '')}</td>
+      <td><a href="customers.html" class="btn btn-ghost btn-sm">View</a></td>
+    </tr>
+  `).join('');
+}
+
+function renderMiniTable(container, bookings, customers, emptyMsg) {
+  if (!bookings.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:2rem"><div class="empty-state-icon" aria-hidden="true">🗓️</div><p class="text-sm text-muted">${emptyMsg}</p></div>`;
+    return;
+  }
+  const rows = bookings.slice(0, 6).map(b => {
+    const cust = (customers || []).find(c => c.id === b.customer_id) || {};
+    return `<tr>
+      <td style="font-weight:600">${APP.escapeHtml(cust.first_name || '')} ${APP.escapeHtml(cust.last_name || '')}</td>
+      <td class="text-muted">${API.formatTime(b.start_time)}</td>
+      <td>${APP.statusBadge(b.status)}</td>
+      <td><a href="bookings.html" class="btn btn-ghost btn-sm">Detail</a></td>
+    </tr>`;
+  }).join('');
+  container.innerHTML = `<table><thead><tr><th>Customer</th><th>Time</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+loadDashboard();
+</script>
+
+<style>
+.book-loading {
+  display: flex; align-items: center; gap: .75rem;
+  color: var(--text-muted); font-size: .875rem;
+}
+.section-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .875rem;
+}
+.section-bar-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+</body>
+</html>
