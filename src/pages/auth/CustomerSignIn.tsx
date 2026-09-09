@@ -34,7 +34,7 @@ export const CustomerSignIn: React.FC = () => {
         {/* 1-Click Fast Persona Switcher for Instant Testing */}
         <div style={{ background: '#0B0F19', padding: '14px', borderRadius: '10px', marginBottom: '24px', border: '1px solid var(--border-subtle)' }}>
           <div style={{ fontSize: '0.78rem', color: '#34D399', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Zap size={13} /> 1-Click Instant Demo Login
+            <Zap size={13} /> Quick Account Sign-in
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <button

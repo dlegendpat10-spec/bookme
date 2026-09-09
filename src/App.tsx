@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { DemoBar } from './components/layout/DemoBar';
 import { Navbar } from './components/layout/Navbar';
 
 // Pages
@@ -36,7 +35,6 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <DemoBar />
           <Navbar />
           <Routes>
             {/* Public Marketing */}

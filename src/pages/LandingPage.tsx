@@ -114,8 +114,8 @@ export const LandingPage: React.FC = () => {
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <Link to="/business/luxe-grooming" className="btn btn-fast-book">
-              <Zap size={18} fill="#fff" /> Try 5-Second Demo
+            <Link to="/business/brain-teaser" className="btn btn-fast-book">
+              <Zap size={18} fill="#fff" /> Book an Appointment
             </Link>
             <Link to="/admin/onboarding" className="btn btn-secondary" style={{ minHeight: '48px', padding: '13px 24px' }}>
               <Building2 size={18} /> Register Your Business
@@ -213,10 +213,10 @@ export const LandingPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px' }}>
             <div>
               <h2 style={{ fontSize: '1.9rem', fontWeight: 800, marginBottom: '6px' }}>
-                Live Demo Businesses
+                Featured Service Businesses
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-                Click any card to experience the real booking flow end-to-end.
+                Select a business to schedule your next appointment online.
               </p>
             </div>
             <span style={{ fontSize: '0.82rem', color: 'var(--text-faint)', fontWeight: 600 }}>

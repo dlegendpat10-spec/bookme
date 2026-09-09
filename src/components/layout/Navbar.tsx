@@ -66,7 +66,7 @@ export const Navbar: React.FC = () => {
 
         {/* Nav links */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-          {navLink('/business/luxe-grooming', 'Book Demo')}
+          {navLink('/business/brain-teaser', 'Book Appointment')}
           {isAdmin && (
             <>
               {navLink('/admin/dashboard', 'Dashboard')}
