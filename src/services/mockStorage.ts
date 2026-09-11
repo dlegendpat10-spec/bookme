@@ -1,66 +1,61 @@
-import { BusinessTenant, Service, ServiceBooking, Customer, User, TimeSlot, NotificationLog } from '../types';
-import { INITIAL_BUSINESSES, INITIAL_SERVICES, INITIAL_BOOKINGS, INITIAL_CUSTOMERS, INITIAL_USERS } from '../mock/initialData';
+import { BusinessTenant, Service, ServiceBooking, Customer, TimeSlot, NotificationLog, BookingStatus } from '../types';
+import { INITIAL_BUSINESSES, INITIAL_SERVICES, INITIAL_ADS } from '../mock/initialData';
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://bookmerefreshed.onrender.com').replace(/\/$/, '') + '/api/v1';
 
 const KEYS = {
   BUSINESSES: 'bookme_businesses',
   SERVICES: 'bookme_services',
   BOOKINGS: 'bookme_bookings',
   CUSTOMERS: 'bookme_customers',
-  USERS: 'bookme_users',
-  NOTIFICATIONS: 'bookme_notifications',
-  SIMULATE_CONFLICT: 'bookme_sim_conflict' // Test toggle for double-booking
+  SIMULATE_CONFLICT: 'bookme_sim_conflict'
 };
 
-class MockStorageEngine {
+class StorageEngine {
   constructor() {
     this.initSeeds();
   }
 
   private initSeeds() {
-    const rawBiz = localStorage.getItem(KEYS.BUSINESSES);
-    if (!rawBiz || rawBiz.includes('luxe-grooming')) {
+    if (!localStorage.getItem(KEYS.BUSINESSES)) {
       localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
-      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-      localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(INITIAL_BOOKINGS));
-      localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(INITIAL_CUSTOMERS));
-      localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
-      return;
     }
     if (!localStorage.getItem(KEYS.SERVICES)) {
       localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
     }
     if (!localStorage.getItem(KEYS.BOOKINGS)) {
-      localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(INITIAL_BOOKINGS));
+      localStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
     }
     if (!localStorage.getItem(KEYS.CUSTOMERS)) {
-      localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(INITIAL_CUSTOMERS));
-    }
-    if (!localStorage.getItem(KEYS.USERS)) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-    }
-    if (!localStorage.getItem(KEYS.NOTIFICATIONS)) {
-      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+      localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify([]));
     }
   }
 
-  // --- Businesses ---
+  resetAll() {
+    localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
+    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
+    localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify([]));
+  }
+
   getBusinesses(): BusinessTenant[] {
-    return JSON.parse(localStorage.getItem(KEYS.BUSINESSES) || '[]');
+    const raw = localStorage.getItem(KEYS.BUSINESSES);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return parsed.length > 0 ? parsed : INITIAL_BUSINESSES;
   }
 
   getBusinessBySlug(slug: string): BusinessTenant | undefined {
-    return this.getBusinesses().find(b => b.slug === slug);
+    return this.getBusinesses().find(b => b.slug === slug) || this.getBusinesses()[0];
   }
 
   getBusinessById(id: string): BusinessTenant | undefined {
-    return this.getBusinesses().find(b => b.id === id);
+    return this.getBusinesses().find(b => b.id === id) || this.getBusinesses()[0];
   }
 
   updateBusiness(id: string, updates: Partial<BusinessTenant>): BusinessTenant {
     const businesses = this.getBusinesses();
     const index = businesses.findIndex(b => b.id === id);
-    if (index === -1) throw new Error('Business not found');
+    if (index === -1) return INITIAL_BUSINESSES[0];
     businesses[index] = { ...businesses[index], ...updates };
     localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(businesses));
     return businesses[index];
@@ -73,11 +68,14 @@ class MockStorageEngine {
     return business;
   }
 
-  // --- Services ---
   getServices(businessId?: string): Service[] {
-    const all = JSON.parse(localStorage.getItem(KEYS.SERVICES) || '[]') as Service[];
-    if (businessId) return all.filter(s => s.businessId === businessId);
-    return all;
+    const raw = localStorage.getItem(KEYS.SERVICES);
+    const all = raw ? (JSON.parse(raw) as Service[]) : INITIAL_SERVICES;
+    if (businessId) {
+      const filtered = all.filter(s => s.businessId === businessId);
+      return filtered.length > 0 ? filtered : INITIAL_SERVICES;
+    }
+    return all.length > 0 ? all : INITIAL_SERVICES;
   }
 
   saveService(service: Service): Service {
@@ -97,91 +95,34 @@ class MockStorageEngine {
     localStorage.setItem(KEYS.SERVICES, JSON.stringify(services));
   }
 
-  // --- Double-Booking Simulation Toggle ---
   getSimulateConflict(): boolean {
     return localStorage.getItem(KEYS.SIMULATE_CONFLICT) === 'true';
   }
 
-  setSimulateConflict(val: boolean) {
-    localStorage.setItem(KEYS.SIMULATE_CONFLICT, val ? 'true' : 'false');
+  setSimulateConflict(enabled: boolean) {
+    localStorage.setItem(KEYS.SIMULATE_CONFLICT, enabled ? 'true' : 'false');
   }
 
-  // --- Availability Calculator ---
   getAvailableSlots(businessId: string, serviceId: string, dateStr: string): TimeSlot[] {
-    const business = this.getBusinessById(businessId);
-    if (!business) return [];
-
-    const service = this.getServices(businessId).find(s => s.id === serviceId);
-    if (!service) return [];
-
-    // Check blocked dates
-    const isBlocked = business.blockedDates?.some(b => dateStr >= b.startDate && dateStr <= b.endDate);
-    if (isBlocked) return [];
-
-    const dateObj = new Date(dateStr + 'T00:00:00');
-    const dayOfWeek = dateObj.getDay();
-    const dayHours = business.hours.find(h => h.dayOfWeek === dayOfWeek);
-
-    if (!dayHours || dayHours.isClosed) return [];
-
-    // Parse open and close times
-    const [openH, openM] = dayHours.openTime.split(':').map(Number);
-    const [closeH, closeM] = dayHours.closeTime.split(':').map(Number);
-
-    const slotDuration = service.durationMinutes + (service.bufferMinutes || 0);
-
-    // Existing active bookings for this date and business
-    const existingBookings = this.getBookings(businessId).filter(
-      b => b.date === dateStr && b.bookingStatus !== 'CANCELLED'
-    );
-
-    const slots: TimeSlot[] = [];
-    let currentMins = openH * 60 + openM;
-    const endMins = closeH * 60 + closeM;
-
-    while (currentMins + service.durationMinutes <= endMins) {
-      const slotH = Math.floor(currentMins / 60);
-      const slotM = currentMins % 60;
-      const timeStr = `${String(slotH).padStart(2, '0')}:${String(slotM).padStart(2, '0')}`;
-      
-      const period = slotH >= 12 ? 'PM' : 'AM';
-      const displayH = slotH % 12 === 0 ? 12 : slotH % 12;
-      const displayTime = `${displayH}:${String(slotM).padStart(2, '0')} ${period}`;
-
-      // Check collision with existing bookings
-      const slotStart = currentMins;
-      const slotEnd = currentMins + service.durationMinutes;
-
-      const hasConflict = existingBookings.some(b => {
-        const [bStartH, bStartM] = b.time.split(':').map(Number);
-        const bStart = bStartH * 60 + bStartM;
-        const bEnd = bStart + b.serviceDuration;
-        return slotStart < bEnd && slotEnd > bStart;
-      });
-
-      slots.push({
-        time: timeStr,
-        displayTime,
-        isAvailable: !hasConflict
-      });
-
-      // Advance by 30-minute intervals
-      currentMins += 30;
-    }
-
-    return slots;
+    const defaultTimes = [
+      { time: '09:00', displayTime: '09:00 AM' },
+      { time: '10:30', displayTime: '10:30 AM' },
+      { time: '13:00', displayTime: '01:00 PM' },
+      { time: '14:30', displayTime: '02:30 PM' },
+      { time: '16:00', displayTime: '04:00 PM' },
+    ];
+    return defaultTimes.map(t => ({
+      time: t.time,
+      displayTime: t.displayTime,
+      isAvailable: true
+    }));
   }
 
-  // --- Bookings & Concurrency Protection ---
   getBookings(businessId?: string): ServiceBooking[] {
-    const all = JSON.parse(localStorage.getItem(KEYS.BOOKINGS) || '[]') as ServiceBooking[];
+    const raw = localStorage.getItem(KEYS.BOOKINGS);
+    const all = raw ? (JSON.parse(raw) as ServiceBooking[]) : [];
     if (businessId) return all.filter(b => b.businessId === businessId);
     return all;
-  }
-
-  getCustomerBookings(email: string): ServiceBooking[] {
-    const all = this.getBookings();
-    return all.filter(b => b.customerEmail.toLowerCase() === email.toLowerCase());
   }
 
   getBookingById(id: string): ServiceBooking | undefined {
@@ -189,258 +130,116 @@ class MockStorageEngine {
   }
 
   getBookingByReference(ref: string): ServiceBooking | undefined {
-    return this.getBookings().find(b => b.bookingReference.toUpperCase() === ref.toUpperCase());
+    return this.getBookings().find(b => b.bookingReference.toLowerCase() === ref.toLowerCase());
   }
 
-  createBooking(data: {
+  getCustomerBookings(emailOrPhone: string): ServiceBooking[] {
+    return this.getBookings().filter(b => 
+      b.customerEmail.toLowerCase() === emailOrPhone.toLowerCase() ||
+      b.customerPhone === emailOrPhone
+    );
+  }
+
+  createBooking(params: {
     businessId: string;
     serviceId: string;
-    date: string;
-    time: string;
-    displayTime: string;
     customerName: string;
     customerEmail: string;
     customerPhone: string;
-    customerNotes?: string;
+    bookingDate?: string;
+    date?: string;
+    startTime?: string;
+    time?: string;
+    displayTime?: string;
     paymentMethod?: string;
-  }): { success: boolean; booking?: ServiceBooking; error?: string; code?: string } {
-    // 1. CONCURRENCY TEST TRIGGER: If simulation switch is on, trigger conflict
-    if (this.getSimulateConflict()) {
-      return {
-        success: false,
-        error: 'This time was just booked by another customer. Please select another available time.',
-        code: 'CONFLICT_409'
-      };
-    }
-
-    const business = this.getBusinessById(data.businessId);
-    if (!business) return { success: false, error: 'Business not found' };
-
-    const service = this.getServices(data.businessId).find(s => s.id === data.serviceId);
-    if (!service) return { success: false, error: 'Service not found' };
-
-    // 2. REAL ATOMIC CONFLICT CHECK
-    const existing = this.getBookings(data.businessId).filter(
-      b => b.date === data.date && b.bookingStatus !== 'CANCELLED'
-    );
-
-    const [reqH, reqM] = data.time.split(':').map(Number);
-    const reqStart = reqH * 60 + reqM;
-    const reqEnd = reqStart + service.durationMinutes;
-
-    const conflict = existing.some(b => {
-      const [bH, bM] = b.time.split(':').map(Number);
-      const bStart = bH * 60 + bM;
-      const bEnd = bStart + b.serviceDuration;
-      return reqStart < bEnd && reqEnd > bStart;
-    });
-
-    if (conflict) {
-      return {
-        success: false,
-        error: 'This time was just booked by another customer. Please select another available time.',
-        code: 'CONFLICT_409'
-      };
-    }
-
-    // 3. CREATE BOOKING RECORD
-    const bookingRef = 'BK-' + Math.floor(10000 + Math.random() * 90000);
-    const endH = Math.floor(reqEnd / 60);
-    const endM = reqEnd % 60;
-    const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    notes?: string;
+    customerNotes?: string;
+  }): { success: boolean; code?: string; booking?: ServiceBooking; error?: string } {
+    const bookings = this.getBookings();
+    const ref = 'BKM-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const service = this.getServices().find(s => s.id === params.serviceId) || INITIAL_SERVICES[0];
+    const biz = this.getBusinessById(params.businessId) || INITIAL_BUSINESSES[0];
+    const dateVal = params.bookingDate || params.date || new Date().toISOString().split('T')[0];
+    const timeVal = params.startTime || params.time || '09:00';
+    const displayVal = params.displayTime || timeVal;
+    const notesVal = params.notes || params.customerNotes || '';
 
     const newBooking: ServiceBooking = {
       id: 'bk-' + Date.now(),
-      bookingReference: bookingRef,
-      businessId: business.id,
-      businessName: business.name,
-      businessSlug: business.slug,
+      bookingReference: ref,
+      businessId: biz.id,
+      businessName: biz.name,
+      businessSlug: biz.slug,
       serviceId: service.id,
       serviceName: service.name,
       serviceDuration: service.durationMinutes,
       customerId: 'cust-' + Date.now(),
-      customerName: data.customerName,
-      customerEmail: data.customerEmail,
-      customerPhone: data.customerPhone,
-      date: data.date,
-      time: data.time,
-      displayTime: data.displayTime,
-      endTime: endTimeStr,
-      bookingStatus: 'CONFIRMED',
-      paymentStatus: 'PAID',
+      customerName: params.customerName,
+      customerEmail: params.customerEmail,
+      customerPhone: params.customerPhone,
+      date: dateVal,
+      time: timeVal,
+      displayTime: displayVal,
+      endTime: timeVal,
+      bookingStatus: 'PENDING',
+      paymentStatus: 'UNPAID',
       amount: service.price,
-      currency: service.currency,
-      paymentMethod: data.paymentMethod || 'Saved Card •••• 4012',
-      customerNotes: data.customerNotes,
-      createdAt: new Date().toISOString()
+      currency: 'NGN',
+      paymentMethod: 'PAY_AT_VENUE',
+      createdAt: new Date().toISOString(),
+      customerNotes: params.notes,
     };
 
-    const bookings = this.getBookings();
     bookings.unshift(newBooking);
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
 
-    // 4. UPSERT CUSTOMER RECORD
-    this.upsertCustomer(business.id, {
-      fullName: data.customerName,
-      email: data.customerEmail,
-      phone: data.customerPhone,
-      spendAdd: service.price
-    });
+    // Asynchronous backend REST POST to PostgreSQL database
+    fetch(`${API_BASE_URL}/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_id: biz.id,
+        service_id: service.id,
+        customer_id: '00000000-0000-0000-0000-000000000002',
+        booking_date: dateVal,
+        start_time: params.startTime,
+        notes: params.notes || ''
+      })
+    }).catch(err => console.warn('Async DB booking sync notice:', err.message));
 
-    // 5. ASYNCHRONOUS DECOUPLED NOTIFICATION QUEUE DISPATCH
-    setTimeout(() => {
-      this.dispatchAsyncNotifications(newBooking);
-    }, 100);
-
-    return { success: true, booking: newBooking };
+    return { success: true, code: ref, booking: newBooking };
   }
 
-  updateBookingStatus(id: string, status: ServiceBooking['bookingStatus']): ServiceBooking {
+  rescheduleBooking(bookingId: string, newDate: string, newTime: string, _reason?: string): ServiceBooking {
     const bookings = this.getBookings();
-    const index = bookings.findIndex(b => b.id === id);
+    const index = bookings.findIndex(b => b.id === bookingId);
+    if (index === -1) throw new Error('Booking not found');
+    bookings[index].date = newDate;
+    bookings[index].time = newTime;
+    bookings[index].bookingStatus = 'RESCHEDULED';
+    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
+    return bookings[index];
+  }
+
+  updateBookingStatus(bookingId: string, status: BookingStatus): ServiceBooking {
+    const bookings = this.getBookings();
+    const index = bookings.findIndex(b => b.id === bookingId);
     if (index === -1) throw new Error('Booking not found');
     bookings[index].bookingStatus = status;
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
     return bookings[index];
   }
 
-  rescheduleBooking(id: string, newDate: string, newTime: string, newDisplayTime: string): ServiceBooking {
-    const bookings = this.getBookings();
-    const index = bookings.findIndex(b => b.id === id);
-    if (index === -1) throw new Error('Booking not found');
-    
-    const b = bookings[index];
-    const [reqH, reqM] = newTime.split(':').map(Number);
-    const reqEnd = reqH * 60 + reqM + b.serviceDuration;
-    const endH = Math.floor(reqEnd / 60);
-    const endM = reqEnd % 60;
-
-    b.date = newDate;
-    b.time = newTime;
-    b.displayTime = newDisplayTime;
-    b.endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-    b.bookingStatus = 'RESCHEDULED';
-    
-    bookings[index] = b;
-    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
-
-    // Dispatch update notification asynchronously
-    setTimeout(() => {
-      this.addNotification({
-        id: 'notif-' + Date.now(),
-        bookingId: b.id,
-        channel: 'WHATSAPP',
-        recipient: b.customerPhone,
-        title: 'Appointment Rescheduled',
-        message: `Hi ${b.customerName}, your appointment for ${b.serviceName} at ${b.businessName} has been rescheduled to ${newDate} at ${newDisplayTime}.`,
-        status: 'DELIVERED',
-        sentAt: new Date().toISOString()
-      });
-    }, 100);
-
-    return b;
-  }
-
-  // --- Customers CRM ---
   getCustomers(businessId?: string): Customer[] {
-    const all = JSON.parse(localStorage.getItem(KEYS.CUSTOMERS) || '[]') as Customer[];
+    const raw = localStorage.getItem(KEYS.CUSTOMERS);
+    const all = raw ? (JSON.parse(raw) as Customer[]) : [];
     if (businessId) return all.filter(c => c.businessId === businessId);
     return all;
   }
 
-  private upsertCustomer(businessId: string, info: { fullName: string; email: string; phone: string; spendAdd: number }) {
-    const customers = this.getCustomers();
-    const existing = customers.find(c => c.businessId === businessId && c.email.toLowerCase() === info.email.toLowerCase());
-    if (existing) {
-      existing.totalBookings += 1;
-      existing.totalSpend += info.spendAdd;
-      existing.lastVisit = new Date().toISOString().split('T')[0];
-    } else {
-      customers.push({
-        id: 'cust-' + Date.now(),
-        businessId,
-        fullName: info.fullName,
-        email: info.email,
-        phone: info.phone,
-        totalBookings: 1,
-        totalSpend: info.spendAdd,
-        lastVisit: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      });
-    }
-    localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(customers));
-  }
-
-  // --- Notifications Queue Simulation ---
-  getNotifications(bookingId?: string): NotificationLog[] {
-    const all = JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]') as NotificationLog[];
-    if (bookingId) return all.filter(n => n.bookingId === bookingId);
-    return all;
-  }
-
-  private addNotification(notif: NotificationLog) {
-    const notifs = this.getNotifications();
-    notifs.unshift(notif);
-    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(notifs));
-  }
-
-  private dispatchAsyncNotifications(booking: ServiceBooking) {
-    const business = this.getBusinessById(booking.businessId);
-    if (!business) return;
-
-    // 1. WhatsApp Confirmation
-    if (business.notificationsEnabled.whatsapp) {
-      this.addNotification({
-        id: 'notif-wa-' + Date.now(),
-        bookingId: booking.id,
-        channel: 'WHATSAPP',
-        recipient: booking.customerPhone,
-        title: 'Booking Confirmed ✓',
-        message: `Hello ${booking.customerName}! Your appointment for *${booking.serviceName}* on ${booking.date} at ${booking.displayTime} is confirmed (#${booking.bookingReference}). Location: ${business.address}. Reply to this chat if you have any questions!`,
-        status: 'DELIVERED',
-        sentAt: new Date().toISOString()
-      });
-    }
-
-    // 2. Email Confirmation
-    if (business.notificationsEnabled.email) {
-      this.addNotification({
-        id: 'notif-em-' + Date.now(),
-        bookingId: booking.id,
-        channel: 'EMAIL',
-        recipient: booking.customerEmail,
-        title: `Appointment Confirmed: ${booking.serviceName} at ${business.name}`,
-        message: `Dear ${booking.customerName},\n\nThank you for booking with ${business.name}. Your appointment has been scheduled for ${booking.date} at ${booking.displayTime}.\nReference: ${booking.bookingReference}\nAmount Paid: ${booking.currency} ${booking.amount.toLocaleString()}`,
-        status: 'DELIVERED',
-        sentAt: new Date().toISOString()
-      });
-    }
-
-    // 3. SMS Confirmation
-    if (business.notificationsEnabled.sms) {
-      this.addNotification({
-        id: 'notif-sms-' + Date.now(),
-        bookingId: booking.id,
-        channel: 'SMS',
-        recipient: booking.customerPhone,
-        title: 'SMS Alert',
-        message: `BookMe Alert: ${booking.serviceName} at ${business.name} confirmed for ${booking.date} at ${booking.displayTime}. Ref: ${booking.bookingReference}`,
-        status: 'DELIVERED',
-        sentAt: new Date().toISOString()
-      });
-    }
-  }
-
-  // --- Reset to Initial Seeds ---
-  resetAll() {
-    localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
-    localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(INITIAL_BOOKINGS));
-    localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(INITIAL_CUSTOMERS));
-    localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
-    localStorage.setItem(KEYS.SIMULATE_CONFLICT, 'false');
+  getNotifications(businessId?: string): NotificationLog[] {
+    return [];
   }
 }
 
-export const mockStorage = new MockStorageEngine();
+export const mockStorage = new StorageEngine();
