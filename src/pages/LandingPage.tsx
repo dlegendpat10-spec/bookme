@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mockStorage } from '../services/mockStorage';
-import { INITIAL_ADS } from '../mock/initialData';
 import {
-  Zap, Calendar, ShieldCheck, MessageSquare,
-  ArrowRight, Star, Building2, Sparkles, CheckCircle2,
-  Users, Award, TrendingUp, ChevronRight
+  Zap, ShieldCheck, MessageSquare, ArrowRight, Star, Building2, ChevronRight
 } from 'lucide-react';
 
 const BIZ_IMAGES: Record<string, string> = {
@@ -16,57 +13,39 @@ const BIZ_IMAGES: Record<string, string> = {
 
 const FEATURES = [
   {
-    icon: <Zap size={24} color="var(--brand-primary)" />,
-    color: 'var(--brand-light)',
-    title: '1-Tap Express Booking',
-    desc: 'Returning customers confirm appointments in under 5 seconds with tokenized cards and saved profiles.',
+    icon: <Zap size={22} color="var(--brand-primary)" />,
+    title: 'Instant 1-Tap Booking',
+    desc: 'Confirm appointments in seconds with saved client profiles and streamlined scheduling.',
   },
   {
-    icon: <ShieldCheck size={24} color="#60A5FA" />,
-    color: 'rgba(59,130,246,0.14)',
-    title: 'Zero Double Bookings',
-    desc: 'Atomic conflict detection prevents slot clashes and surfaces smart alternatives instantly.',
+    icon: <ShieldCheck size={22} color="var(--brand-primary)" />,
+    title: 'Zero Double-Bookings',
+    desc: 'Real-time conflict detection guarantees smooth calendar allocation across all staff.',
   },
   {
-    icon: <MessageSquare size={24} color="#C084FC" />,
-    color: 'rgba(168,85,247,0.14)',
-    title: 'Instant Reminders',
-    desc: 'Automated WhatsApp, SMS, and email confirmations queue asynchronously with zero delay.',
-  },
-  {
-    icon: <Calendar size={24} color="#FBBF24" />,
-    color: 'rgba(245,158,11,0.14)',
-    title: 'Smart Availability',
-    desc: 'Business hours, custom buffers, blocked dates, and staff calendars sync in real-time.',
+    icon: <MessageSquare size={22} color="var(--brand-primary)" />,
+    title: 'Automated Reminders',
+    desc: 'Reduce no-shows with instant SMS, email, and WhatsApp confirmation alerts.',
   },
 ];
 
 const TESTIMONIALS = [
   {
     name: 'Marcus Vance',
-    role: 'Owner, Luxe Grooming Studio',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80',
-    quote: 'BookMe cut our appointment scheduling overhead by 90%. Clients love the 1-tap checkout, and no-shows dropped to nearly zero.',
-    rating: 5,
+    role: 'Luxe Grooming Studio',
+    quote: 'BookMe cut our scheduling overhead completely. Our clients appreciate the clean, instant checkout.',
   },
   {
     name: 'Elena Rostova',
-    role: 'Founder, Serenity Spa & Wellness',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&q=80',
-    quote: 'The multi-theme design and instant WhatsApp notifications feel custom-built for our luxury clientele. Absolutely indispensable.',
-    rating: 5,
+    role: 'Serenity Spa & Wellness',
+    quote: 'The minimalist booking experience aligns perfectly with our luxury brand standards.',
   },
   {
     name: 'Dr. Sarah Jenkins',
-    role: 'Managing Partner, Apex Advisory',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80',
-    quote: 'Managing calendar conflicts across multiple partners was a nightmare before BookMe. The real-time slot lock is flawless.',
-    rating: 5,
+    role: 'Apex Advisory',
+    quote: 'Managing client meetings across multiple advisors has never been easier or more reliable.',
   },
 ];
-
-const marqueeAd = INITIAL_ADS.find(a => a.placement === 'TOP_MARQUEE');
-const heroBannerAd = INITIAL_ADS.find(a => a.placement === 'HERO_BANNER');
 
 export const LandingPage: React.FC = () => {
   const businesses = mockStorage.getBusinesses();
@@ -79,357 +58,262 @@ export const LandingPage: React.FC = () => {
     : businesses.filter(b => b.category.toLowerCase().includes(activeCategory.toLowerCase()));
 
   return (
-    <div>
-      {/* ── Promotional Marquee ───────────────────────────────────────────── */}
-      {marqueeAd?.isActive && (
-        <div className="marquee-track">
-          <div className="marquee-inner">
-            {[...Array(4)].map((_, i) => (
-              <span key={i} className="marquee-item">
-                <Sparkles size={14} /> {marqueeAd.headline}
-                &nbsp;&nbsp;·&nbsp;&nbsp;
-              </span>
+    <div className="page-shell" style={{ paddingTop: '20px' }}>
+      {/* ── Hero Section ─────────────────────────────────────────────────── */}
+      <section style={{
+        textAlign: 'center',
+        padding: '90px 0 70px',
+        maxWidth: '780px',
+        margin: '0 auto',
+      }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '6px 16px', borderRadius: '99px',
+          background: 'var(--brand-light)',
+          border: '1px solid var(--border-subtle)',
+          color: 'var(--brand-primary)',
+          fontSize: '0.82rem', fontWeight: 600,
+          marginBottom: '28px',
+        }}>
+          Effortless Appointment Platform
+        </div>
+
+        <h1 style={{
+          fontSize: 'clamp(2.4rem, 5vw, 3.8rem)',
+          fontWeight: 800,
+          marginBottom: '20px',
+          lineHeight: 1.15,
+          letterSpacing: '-0.03em',
+          color: 'var(--text-main)',
+        }}>
+          Seamless Appointments,<br />Scheduled with Ease
+        </h1>
+
+        <p style={{
+          fontSize: '1.1rem',
+          color: 'var(--text-muted)',
+          lineHeight: 1.7,
+          marginBottom: '40px',
+          maxWidth: '600px',
+          margin: '0 auto 40px',
+          fontWeight: 400,
+        }}>
+          BookMe provides a clean, friction-free booking experience for premium services, wellness centers, and professional advisors.
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <Link to="/business/luxe-grooming" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
+            Book Appointment <ArrowRight size={16} />
+          </Link>
+          <Link to="/admin/onboarding" className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '0.95rem' }}>
+            <Building2 size={16} /> Register Business
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Feature Highlights ────────────────────────────────────────────── */}
+      <section style={{ marginBottom: '100px', marginTop: '20px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '24px',
+        }}>
+          {FEATURES.map(f => (
+            <div
+              key={f.title}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '32px 28px',
+                transition: 'border-color 0.2s ease',
+              }}
+            >
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '10px',
+                background: 'var(--brand-light)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                marginBottom: '20px',
+              }}>
+                {f.icon}
+              </div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '10px', color: 'var(--text-main)' }}>
+                {f.title}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                {f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Business Directory ────────────────────────────────────────────── */}
+      <section style={{ marginBottom: '100px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          marginBottom: '32px',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>
+              Service Partners
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
+              Select a business to view available time slots and book.
+            </p>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
         </div>
-      )}
 
-      <div className="page-shell">
-        {/* ── Hero Section ─────────────────────────────────────────────────── */}
-        <section style={{
-          textAlign: 'center',
-          padding: '80px 0 64px',
-          maxWidth: '820px',
-          margin: '0 auto',
-          position: 'relative',
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
+          gap: '24px',
         }}>
-          {/* Subtle Background Radial Glow */}
-          <div style={{
-            position: 'absolute', top: '20%', left: '50%', transform: 'translate(-50%, -50%)',
-            width: '500px', height: '300px', borderRadius: '50%',
-            background: 'radial-gradient(circle, var(--brand-light) 0%, transparent 70%)',
-            pointerEvents: 'none', zIndex: 0,
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '6px 18px', borderRadius: '99px',
-              background: 'var(--brand-light)',
-              border: '1px solid var(--brand-primary)',
-              color: 'var(--brand-primary)',
-              fontSize: '0.84rem', fontWeight: 700,
-              marginBottom: '24px',
-              boxShadow: 'var(--shadow-glow)',
-            }}>
-              <Zap size={15} fill="currentColor" /> Next-Gen Enterprise Appointment Platform
-            </div>
-
-            <h1 style={{
-              fontSize: 'clamp(2.6rem, 5.5vw, 4rem)',
-              fontWeight: 900, marginBottom: '22px',
-              lineHeight: 1.1,
-              letterSpacing: '-0.035em',
-            }}>
-              Appointments Booked{' '}
-              <br />
-              <span style={{
-                background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--text-main) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                With Effortless Speed & Elegance
-              </span>
-            </h1>
-
-            <p style={{
-              fontSize: '1.15rem',
-              color: 'var(--text-muted)',
-              lineHeight: 1.7,
-              marginBottom: '38px',
-              maxWidth: '640px',
-              margin: '0 auto 38px',
-            }}>
-              BookMe empowers premium salons, advisory firms, and wellness centers to deliver 
-              frictionless 1-tap bookings, eliminate double-bookings, and automate notifications.
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <Link to="/business/luxe-grooming" className="btn btn-fast-book" style={{ minHeight: '50px', padding: '14px 32px', fontSize: '1rem' }}>
-                <Zap size={20} fill="#fff" /> Book an Appointment
-              </Link>
-              <Link to="/admin/onboarding" className="btn btn-secondary" style={{ minHeight: '50px', padding: '14px 28px', fontSize: '0.96rem' }}>
-                <Building2 size={18} /> Register Your Business
-              </Link>
-            </div>
-
-            {/* Social proof mini-strip */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '36px', marginTop: '48px', flexWrap: 'wrap',
-              padding: '16px 24px', background: 'var(--bg-card)',
-              border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xl)',
-            }}>
-              {[
-                { val: '12,400+', label: 'Bookings Completed' },
-                { val: '99.4%', label: 'On-Time SLA Rate' },
-                { val: '< 4.2s', label: 'Average Booking Time' },
-                { val: '4.9 ★', label: 'Customer Satisfaction' },
-              ].map(stat => (
-                <div key={stat.label} style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.45rem', fontWeight: 900, color: 'var(--brand-primary)' }}>{stat.val}</div>
-                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Hero Ad Banner (Promotion) ────────────────────────────────────── */}
-        {heroBannerAd?.isActive && (
-          <div className="ad-hero-banner">
-            <div className="ad-hero-banner-bg" />
-            <div className="ad-hero-banner-content">
-              <div>
-                <span style={{
-                  display: 'inline-block', fontSize: '0.7rem', fontWeight: 800,
-                  letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: 'var(--brand-primary)', background: 'var(--brand-light)',
-                  padding: '3px 10px', borderRadius: '99px',
-                  border: '1px solid var(--brand-primary)',
-                  marginBottom: '12px',
-                }}>
-                  {heroBannerAd.badgeText}
-                </span>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px', maxWidth: '500px' }}>
-                  {heroBannerAd.headline}
-                </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', maxWidth: '460px', lineHeight: 1.6 }}>
-                  {heroBannerAd.description}
-                </p>
-                {heroBannerAd.discountCode && (
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '10px',
-                    marginTop: '14px', background: 'var(--bg-app)',
-                    border: '1px dashed var(--brand-primary)', borderRadius: '8px',
-                    padding: '8px 16px',
-                  }}>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Promo code:</span>
-                    <code style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary)', letterSpacing: '0.05em' }}>
-                      {heroBannerAd.discountCode}
-                    </code>
-                  </div>
-                )}
-              </div>
-              <Link to="/business/luxe-grooming" className="btn btn-fast-book" style={{ flexShrink: 0, fontSize: '0.92rem' }}>
-                {heroBannerAd.ctaText} <ArrowRight size={16} />
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* ── Features Grid ─────────────────────────────────────────────────── */}
-        <section style={{ marginBottom: '90px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-            <h2 style={{ fontSize: '2.1rem', fontWeight: 900, marginBottom: '12px' }}>
-              Engineered For Modern Service Excellence
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-              Designed from the ground up to give service providers peace of mind and clients a delightful booking experience.
-            </p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '22px' }}>
-            {FEATURES.map(f => (
-              <div key={f.title} className="glass-card glow-card" style={{ padding: '30px' }}>
+          {filteredBusinesses.map(biz => (
+            <Link
+              key={biz.id}
+              to={`/business/${biz.slug}`}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'border-color 0.2s ease, transform 0.2s ease',
+              }}
+              className="card-hover"
+            >
+              {/* Business Image */}
+              <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+                <img
+                  src={BIZ_IMAGES[biz.slug] || BIZ_IMAGES['luxe-grooming']}
+                  alt={biz.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  loading="lazy"
+                />
                 <div style={{
-                  width: '52px', height: '52px', borderRadius: '14px',
-                  background: f.color, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                  marginBottom: '20px',
+                  position: 'absolute', top: '12px', left: '12px',
                 }}>
-                  {f.icon}
+                  <span className="badge" style={{
+                    background: 'rgba(15, 23, 42, 0.75)', color: '#fff',
+                    backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.15)',
+                    fontSize: '0.7rem',
+                  }}>
+                    {biz.category}
+                  </span>
                 </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '10px' }}>{f.title}</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65 }}>{f.desc}</p>
               </div>
-            ))}
-          </div>
-        </section>
 
-        {/* ── Business Directory ────────────────────────────────────────────── */}
-        <section style={{ marginBottom: '90px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '6px' }}>
-                Featured Service Partners
-              </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                Discover top-rated barbers, wellness spas, and advisors near you.
-              </p>
-            </div>
-            {/* Category Filter Pills */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-            {filteredBusinesses.map(biz => (
-              <Link
-                key={biz.id}
-                to={`/business/${biz.slug}`}
-                className="glass-card glow-card"
-                style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}
-              >
-                {/* Business Image */}
-                <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
-                  <img
-                    src={BIZ_IMAGES[biz.slug] || BIZ_IMAGES['luxe-grooming']}
-                    alt={biz.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-                    loading="lazy"
-                  />
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.8) 100%)',
-                  }} />
-                  <div style={{
-                    position: 'absolute', top: '14px', left: '14px',
-                    display: 'flex', gap: '8px',
-                  }}>
-                    <span className="badge" style={{
-                      background: 'rgba(15, 23, 42, 0.8)', color: '#fff',
-                      backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)',
-                    }}>
-                      {biz.category}
-                    </span>
-                  </div>
-                  <div style={{
-                    position: 'absolute', bottom: '14px', right: '14px',
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-                    borderRadius: '8px', padding: '5px 12px',
-                    color: '#FBBF24', fontSize: '0.85rem', fontWeight: 800,
-                  }}>
-                    <Star size={14} fill="#FBBF24" /> {biz.rating} ({biz.reviewCount} reviews)
+              {/* Business Details */}
+              <div style={{ padding: '20px 22px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{biz.name}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.84rem', color: '#FBBF24', fontWeight: 700 }}>
+                    <Star size={13} fill="#FBBF24" /> {biz.rating}
                   </div>
                 </div>
 
-                {/* Business Info */}
-                <div style={{ padding: '22px 24px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>{biz.name}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, flex: 1 }}>
-                    {biz.description}
-                  </p>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', marginTop: '18px',
-                  }}>
-                    <span style={{ fontSize: '0.82rem', color: 'var(--text-faint)' }}>{biz.address}</span>
-                    <span style={{ color: 'var(--brand-primary)', fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Book Now <ChevronRight size={16} />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Testimonials Section ─────────────────────────────────────────── */}
-        <section style={{ marginBottom: '90px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-            <h2 style={{ fontSize: '2.1rem', fontWeight: 900, marginBottom: '10px' }}>
-              Trusted By Industry Leaders
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.98rem' }}>
-              Here is what top business owners and clients say about BookMe.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {TESTIMONIALS.map(t => (
-              <div key={t.name} className="glass-card" style={{ padding: '28px' }}>
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '14px', color: '#FBBF24' }}>
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} size={16} fill="#FBBF24" />
-                  ))}
-                </div>
-                <p style={{ fontSize: '0.92rem', color: 'var(--text-main)', lineHeight: 1.65, fontStyle: 'italic', marginBottom: '20px' }}>
-                  "{t.quote}"
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', lineHeight: 1.6, flex: 1, marginBottom: '20px' }}>
+                  {biz.description}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img
-                    src={t.avatar}
-                    alt={t.name}
-                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t.name}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.role}</div>
-                  </div>
+
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  borderTop: '1px solid var(--border-subtle)', paddingTop: '14px',
+                }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>{biz.address}</span>
+                  <span style={{ color: 'var(--brand-primary)', fontWeight: 600, fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    Book <ChevronRight size={15} />
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-        {/* ── Admin CTA ─────────────────────────────────────────────────────── */}
-        <section style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-strong)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '52px 44px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '32px',
-          flexWrap: 'wrap',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: 'var(--shadow-lg)',
-        }}>
-          <div style={{
-            position: 'absolute', right: '-60px', top: '-60px',
-            width: '320px', height: '320px', borderRadius: '50%',
-            background: 'radial-gradient(circle, var(--brand-light) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.84rem',
-              marginBottom: '12px',
-            }}>
-              <CheckCircle2 size={16} /> For Growing Businesses
+      {/* ── Testimonials ─────────────────────────────────────────────────── */}
+      <section style={{ marginBottom: '100px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px' }}>
+            Trusted by Professionals
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
+            Designed for businesses that prioritize speed, clarity, and convenience.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          {TESTIMONIALS.map(t => (
+            <div
+              key={t.name}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '24px 26px',
+              }}
+            >
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '16px' }}>
+                "{t.quote}"
+              </p>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>{t.name}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.role}</div>
+              </div>
             </div>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '12px' }}>
-              Scale Your Appointments<br />Without The Hassle
-            </h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '480px', fontSize: '0.98rem', lineHeight: 1.65 }}>
-              Create your branded booking page in under 3 minutes. Manage schedules, accept payments, 
-              and reduce no-shows effortlessly.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-            <Link to="/admin/dashboard" className="btn btn-primary" style={{ minHeight: '50px', padding: '14px 28px', fontSize: '0.98rem' }}>
-              Admin Workspace
-            </Link>
-            <Link to="/admin/onboarding" className="btn btn-secondary" style={{ minHeight: '50px', padding: '14px 28px', fontSize: '0.98rem' }}>
-              Register Business
-            </Link>
-          </div>
-        </section>
-      </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Minimalist Callout Banner ─────────────────────────────────────── */}
+      <section style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '40px 36px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '24px',
+        flexWrap: 'wrap',
+      }}>
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-main)' }}>
+            Are you a service provider?
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', maxWidth: '480px' }}>
+            Set up your custom booking portal, manage slots, and take control of your schedule in minutes.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <Link to="/admin/onboarding" className="btn btn-primary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>
+            Get Started
+          </Link>
+          <Link to="/admin/dashboard" className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>
+            Admin Dashboard
+          </Link>
+        </div>
+      </section>
     </div>
   );
 };
