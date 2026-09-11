@@ -10,11 +10,14 @@ Bookme is a modern, business-agnostic appointment booking and reservation manage
 - **Business Admin Portal**: Interactive dashboard, calendar management, services management, business hours & blocked dates configuration, customer CRM, analytics, and business profile customization.
 - **White-Label Ready**: Configurable business identity and branding.
 
-## Configuration & API Connection
+## Live Application & Configuration
 
-The application connects to the Render-hosted backend:
-- **API Base URL**: `https://bookmerefreshed.onrender.com`
-- **Environment Variable**: `VITE_API_BASE_URL` (configured in `.env` and `.env.production`)
+- **Live Production App (Vercel)**: [https://bookme-indol-six.vercel.app](https://bookme-indol-six.vercel.app)
+- **API Base URL (Render)**: `https://bookmerefreshed.onrender.com`
+- **Environment Variables**:
+  - `VITE_FRONTEND_URL` (`https://bookme-indol-six.vercel.app`)
+  - `VITE_API_BASE_URL` (`https://bookmerefreshed.onrender.com`)
+
 
 ## Local Development
 
