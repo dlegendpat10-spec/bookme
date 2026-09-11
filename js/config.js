@@ -5,15 +5,15 @@
 
 const BUSINESS_CONFIG = {
   /* ── Identity ───────────────────────────────────────── */
-  name:        'Brain Teaser Educational Consults',
-  shortName:   'Brain Teaser',
-  tagline:     'Professional educational guidance, expertly delivered.',
-  description: 'We offer personalised educational consulting and tutoring sessions designed to unlock each student\'s full potential.',
+  name:        'Bookme Appointments',
+  shortName:   'Bookme',
+  tagline:     'Frictionless appointment booking & scheduling.',
+  description: 'Bookme empowers service businesses to offer seamless 1-tap bookings and automated scheduling.',
 
   /* ── Branding ───────────────────────────────────────── */
   // primaryColor is applied via CSS custom properties if overriding
   logo:        null,          // URL string or null (shows initials)
-  initials:    'BT',
+  initials:    'BM',
 
   /* ── Locale ─────────────────────────────────────────── */
   currency:        'NGN',
@@ -30,7 +30,7 @@ const BUSINESS_CONFIG = {
 
   /* ── Contact ────────────────────────────────────────── */
   phone:   '+234 800 000 0000',
-  email:   'hello@brainteaser.ng',
+  email:   'hello@bookme.app',
   address: 'Lagos, Nigeria',
 
   /* ── API Connection ──────────────────────────────────── */

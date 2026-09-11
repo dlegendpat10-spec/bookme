@@ -123,12 +123,12 @@ CREATE TABLE IF NOT EXISTS service_bookings (
 INSERT INTO businesses (id, name, slug, category, description, phone_number, email, address)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
-    'Brain Teaser Educational Consults',
-    'brain-teaser',
-    'Educational Consulting',
-    'Professional educational guidance and tutoring sessions.',
+    'Bookme Appointments',
+    'bookme-appointments',
+    'Appointment Booking',
+    'Professional appointment booking and advisory scheduling.',
     '+234 800 000 0000',
-    'hello@brainteaser.ng',
+    'hello@bookme.app',
     'Lagos, Nigeria'
 ) ON CONFLICT (slug) DO NOTHING;
 

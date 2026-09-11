@@ -3,13 +3,13 @@ import { BusinessTenant, Service, ServiceBooking, Customer, User, AdCampaign } f
 export const INITIAL_BUSINESSES: BusinessTenant[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
-    name: 'Brain Teaser Educational Consults',
+    name: 'Bookme Appointments',
     slug: 'luxe-grooming',
     category: 'Advisory',
-    description: 'Professional educational guidance, tutoring, and university admissions advisory.',
+    description: 'Professional appointment booking, tutoring, and advisory scheduling.',
     logoUrl: '',
     phone: '+234 800 000 0000',
-    email: 'hello@brainteaser.ng',
+    email: 'hello@bookme.app',
     address: 'Lagos, Nigeria',
     accentColor: '#7C3AED',
     ownerId: 'usr-001',
