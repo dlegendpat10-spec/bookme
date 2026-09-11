@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { mockStorage } from '../services/mockStorage';
 import {
-  Zap, ShieldCheck, MessageSquare, ArrowRight, Star, Building2, ChevronRight
+  Zap, ShieldCheck, MessageSquare, ArrowRight, Clock, CheckCircle2, Building2
 } from 'lucide-react';
-
-const BIZ_IMAGES: Record<string, string> = {
-  'luxe-grooming': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80',
-  'serenity-wellness': 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=600&q=80',
-  'apex-advisory': 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=600&q=80',
-};
 
 const FEATURES = [
   {
@@ -48,14 +42,8 @@ const TESTIMONIALS = [
 ];
 
 export const LandingPage: React.FC = () => {
-  const businesses = mockStorage.getBusinesses();
-  const [activeCategory, setActiveCategory] = useState<string>('All');
-
-  const categories = ['All', 'Barbershop', 'Wellness', 'Advisory'];
-
-  const filteredBusinesses = activeCategory === 'All'
-    ? businesses
-    : businesses.filter(b => b.category.toLowerCase().includes(activeCategory.toLowerCase()));
+  const services = mockStorage.getServices();
+  const defaultBusiness = mockStorage.getBusinesses()[0];
 
   return (
     <div className="page-shell" style={{ paddingTop: '20px' }}>
@@ -98,12 +86,12 @@ export const LandingPage: React.FC = () => {
           margin: '0 auto 40px',
           fontWeight: 400,
         }}>
-          BookMe provides a clean, friction-free booking experience for premium services, wellness centers, and professional advisors.
+          BookMe provides a clean, friction-free booking experience for premium services, consultations, and professional appointments.
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <Link to="/business/luxe-grooming" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
-            Book Appointment <ArrowRight size={16} />
+          <Link to={`/business/${defaultBusiness?.slug || 'luxe-grooming'}`} className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
+            Select Service & Book <ArrowRight size={16} />
           </Link>
           <Link to="/admin/onboarding" className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '0.95rem' }}>
             <Building2 size={16} /> Register Business
@@ -111,8 +99,81 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── Direct Available Services ─────────────────────────────────────── */}
+      <section style={{ marginBottom: '100px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '44px' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px' }}>
+            Available Services
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
+            Select a service below to view time slots and confirm your appointment.
+          </p>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+        }}>
+          {services.map(svc => (
+            <div
+              key={svc.id}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              className="card-hover"
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{svc.name}</h3>
+                  <span style={{
+                    fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary)',
+                    background: 'var(--brand-light)', padding: '4px 10px', borderRadius: '8px',
+                  }}>
+                    ₦{svc.price.toLocaleString()}
+                  </span>
+                </div>
+
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '20px' }}>
+                  {svc.description}
+                </p>
+              </div>
+
+              <div>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  color: 'var(--text-faint)', fontSize: '0.82rem', marginBottom: '20px',
+                  borderTop: '1px solid var(--border-subtle)', paddingTop: '14px',
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Clock size={14} /> {svc.durationMinutes} mins
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <CheckCircle2 size={14} color="var(--brand-primary)" /> Instant Confirmation
+                  </span>
+                </div>
+
+                <Link
+                  to={`/business/${defaultBusiness?.slug || 'luxe-grooming'}`}
+                  className="btn btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '0.9rem' }}
+                >
+                  Book Service <ArrowRight size={15} />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Feature Highlights ────────────────────────────────────────────── */}
-      <section style={{ marginBottom: '100px', marginTop: '20px' }}>
+      <section style={{ marginBottom: '100px' }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -126,7 +187,6 @@ export const LandingPage: React.FC = () => {
                 border: '1px solid var(--border-subtle)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '32px 28px',
-                transition: 'border-color 0.2s ease',
               }}
             >
               <div style={{
@@ -144,108 +204,6 @@ export const LandingPage: React.FC = () => {
                 {f.desc}
               </p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Business Directory ────────────────────────────────────────────── */}
-      <section style={{ marginBottom: '100px' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          marginBottom: '32px',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}>
-          <div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>
-              Service Partners
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
-              Select a business to view available time slots and book.
-            </p>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
-          gap: '24px',
-        }}>
-          {filteredBusinesses.map(biz => (
-            <Link
-              key={biz.id}
-              to={`/business/${biz.slug}`}
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'border-color 0.2s ease, transform 0.2s ease',
-              }}
-              className="card-hover"
-            >
-              {/* Business Image */}
-              <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                <img
-                  src={BIZ_IMAGES[biz.slug] || BIZ_IMAGES['luxe-grooming']}
-                  alt={biz.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  loading="lazy"
-                />
-                <div style={{
-                  position: 'absolute', top: '12px', left: '12px',
-                }}>
-                  <span className="badge" style={{
-                    background: 'rgba(15, 23, 42, 0.75)', color: '#fff',
-                    backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.15)',
-                    fontSize: '0.7rem',
-                  }}>
-                    {biz.category}
-                  </span>
-                </div>
-              </div>
-
-              {/* Business Details */}
-              <div style={{ padding: '20px 22px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{biz.name}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.84rem', color: '#FBBF24', fontWeight: 700 }}>
-                    <Star size={13} fill="#FBBF24" /> {biz.rating}
-                  </div>
-                </div>
-
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', lineHeight: 1.6, flex: 1, marginBottom: '20px' }}>
-                  {biz.description}
-                </p>
-
-                <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  borderTop: '1px solid var(--border-subtle)', paddingTop: '14px',
-                }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)' }}>{biz.address}</span>
-                  <span style={{ color: 'var(--brand-primary)', fontWeight: 600, fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    Book <ChevronRight size={15} />
-                  </span>
-                </div>
-              </div>
-            </Link>
           ))}
         </div>
       </section>
