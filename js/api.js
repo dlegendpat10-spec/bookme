@@ -32,17 +32,7 @@ async function request(endpoint, options = {}) {
 
 // ── Services API ──────────────────────────────────────────────────
 async function getServices(includeInactive = false) {
-  const res = await request(`/services?includeInactive=${includeInactive}`);
-  if (res.data) return res;
-  // Fallback default services if API is initializing
-  return {
-    data: [
-      { id: '00000000-0000-0000-0000-000000000101', name: 'Initial Academic Consultation', description: 'Comprehensive 1-on-1 assessment of student goals.', duration_minutes: 60, price: 15000, is_active: true, icon: '🎯', category: 'consultation' },
-      { id: '00000000-0000-0000-0000-000000000102', name: '1-on-1 Subject Tutoring', description: 'Personalised subject-specific tutoring session.', duration_minutes: 90, price: 25000, is_active: true, icon: '📚', category: 'tutoring' },
-      { id: '00000000-0000-0000-0000-000000000103', name: 'University Admissions Strategy', description: 'Expert guidance on university application essays.', duration_minutes: 120, price: 40000, is_active: true, icon: '🎓', category: 'admissions' }
-    ],
-    error: null
-  };
+  return await request(`/services?includeInactive=${includeInactive}`);
 }
 
 async function getService(id) {
@@ -63,46 +53,20 @@ async function deleteService(id) {
 
 // ── Time Slots API ────────────────────────────────────────────────
 async function getAvailableSlots(serviceId, date) {
-  const res = await request(`/slots?serviceId=${serviceId}&date=${date}`);
-  if (res.data) return res;
-  return {
-    data: [
-      { time: '09:00:00', end: '10:00:00', display: '09:00 AM', available: true },
-      { time: '10:30:00', end: '11:30:00', display: '10:30 AM', available: true },
-      { time: '13:00:00', end: '14:00:00', display: '01:00 PM', available: true },
-      { time: '14:30:00', end: '15:30:00', display: '02:30 PM', available: true },
-      { time: '16:00:00', end: '17:00:00', display: '04:00 PM', available: true }
-    ],
-    error: null
-  };
+  return await request(`/slots?serviceId=${serviceId}&date=${date}`);
 }
 
 // ── Bookings API ──────────────────────────────────────────────────
 async function createBooking(payload) {
-  // Post directly to backend booking creation route
   const body = {
     service_id: payload.service_id || payload.serviceId,
-    customer_id: payload.customer_id || payload.customerId,
+    customer_id: payload.customer_id || payload.customerId || '00000000-0000-0000-0000-000000000002',
     booking_date: payload.booking_date || payload.date,
     start_time: payload.start_time || payload.time,
     notes: payload.notes || payload.customer_notes || '',
   };
 
-  const res = await request('/bookings', { method: 'POST', body: JSON.stringify(body) });
-  if (res.data) return res;
-
-  // Fallback response with reference generation
-  const ref = 'BKM-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-  return {
-    data: {
-      id: 'bk-' + Date.now(),
-      booking_reference: ref,
-      status: 'PENDING',
-      ...body,
-      created_at: new Date().toISOString()
-    },
-    error: null
-  };
+  return await request('/bookings', { method: 'POST', body: JSON.stringify(body) });
 }
 
 async function getBookings(filters = {}) {
@@ -175,13 +139,7 @@ async function login(email, password) {
     localStorage.setItem('bookme_user', JSON.stringify(res.data));
     return res;
   }
-  // Local admin credential check
-  if (email === 'admin@bookme.app' && password === 'admin123') {
-    const user = { id: 'usr-001', email, full_name: 'Deji Ayomide', role: 'ADMIN', token: 'mock-jwt-token' };
-    localStorage.setItem('bookme_user', JSON.stringify(user));
-    return { data: user, error: null };
-  }
-  return { data: null, error: 'Invalid email or password.' };
+  return { data: null, error: res.error || 'Invalid email or password.' };
 }
 
 function logout() {
