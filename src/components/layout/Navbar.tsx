@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { ExternalLink, ChevronDown, Palette } from 'lucide-react';
+import { ExternalLink, ChevronDown, Palette, LogOut, User, LogIn } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentUser, role, signOut } = useAuth();
+  const { currentUser, role, signOut, isAuthenticated } = useAuth();
   const { theme, setTheme, themes } = useTheme();
   const location = useLocation();
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const isAdmin = role === 'BUSINESS_ADMIN';
-  const isCustomer = role === 'CUSTOMER';
-
   const activeColor = 'var(--brand-primary)';
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -50,7 +48,7 @@ export const Navbar: React.FC = () => {
       justifyContent: 'space-between',
       gap: '16px',
     }}>
-      {/* ── Brand ── */}
+      {/* ── Brand & Navigation Links ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', flexShrink: 0 }}>
           <div style={{
@@ -66,27 +64,21 @@ export const Navbar: React.FC = () => {
 
         {/* Nav links */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {navLink('/business/luxe-grooming', 'Book Service')}
-          {isAdmin && (
+          {navLink(`/business/${currentUser?.businessSlug || 'luxe-grooming'}`, 'Book Service')}
+          {isAuthenticated && (
             <>
               {navLink('/admin/dashboard', 'Dashboard')}
               {navLink('/admin/calendar', 'Calendar')}
               {navLink('/admin/bookings', 'Bookings')}
               {navLink('/admin/services', 'Services')}
-              {navLink('/admin/analytics', 'Analytics')}
-            </>
-          )}
-          {isCustomer && (
-            <>
-              {navLink('/customer/dashboard', 'Dashboard')}
-              {navLink('/customer/bookings', 'My Bookings')}
+              {navLink('/admin/availability', 'Hours')}
             </>
           )}
         </nav>
       </div>
 
-      {/* ── Right ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+      {/* ── Right Controls & Auth Buttons ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
         {/* Theme Picker */}
         <div style={{ position: 'relative' }}>
           <button
@@ -140,28 +132,8 @@ export const Navbar: React.FC = () => {
           )}
         </div>
 
-        {/* Book Now / Live Page button */}
-        {isAdmin ? (
-          <Link
-            to="/business/luxe-grooming"
-            target="_blank"
-            className="btn btn-secondary"
-            style={{ fontSize: '0.82rem', padding: '7px 14px', minHeight: '36px' }}
-          >
-            Live Page <ExternalLink size={13} />
-          </Link>
-        ) : (
-          <Link
-            to="/business/luxe-grooming"
-            className="btn btn-primary"
-            style={{ fontSize: '0.85rem', padding: '7px 16px', minHeight: '36px' }}
-          >
-            ⚡ Book Now
-          </Link>
-        )}
-
-        {/* User Menu */}
-        {currentUser && (
+        {/* User Auth Buttons or Menu */}
+        {isAuthenticated && currentUser ? (
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => { setShowUserMenu(p => !p); setShowThemePicker(false); }}
@@ -179,14 +151,14 @@ export const Navbar: React.FC = () => {
                 fontWeight: 800, fontSize: '0.9rem', color: '#fff',
                 fontFamily: 'Outfit, sans-serif',
               }}>
-                {currentUser.fullName.charAt(0)}
+                {(currentUser.fullName || 'U').charAt(0).toUpperCase()}
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>
-                  {currentUser.fullName.split(' ')[0]}
+                  {(currentUser.fullName || 'User').split(' ')[0]}
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-faint)', lineHeight: 1 }}>
-                  {currentUser.role === 'BUSINESS_ADMIN' ? 'Admin' : 'Customer'}
+                  {currentUser.role === 'BUSINESS_ADMIN' ? 'Business Admin' : 'Customer'}
                 </div>
               </div>
               <ChevronDown size={13} style={{ color: 'var(--text-faint)' }} />
@@ -197,11 +169,11 @@ export const Navbar: React.FC = () => {
                 position: 'absolute', right: 0, top: 'calc(100% + 8px)',
                 background: 'var(--bg-card)', border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-lg)', padding: '8px', zIndex: 1200,
-                minWidth: '180px', boxShadow: 'var(--shadow-lg)',
+                minWidth: '200px', boxShadow: 'var(--shadow-lg)',
                 animation: 'slideUp 0.18s ease-out',
               }}>
                 <div style={{ padding: '8px 12px 12px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{currentUser.fullName}</div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>{currentUser.fullName}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)', marginTop: '2px' }}>{currentUser.email}</div>
                 </div>
                 <button
@@ -213,10 +185,19 @@ export const Navbar: React.FC = () => {
                     fontSize: '0.88rem', fontWeight: 600, textAlign: 'left',
                   }}
                 >
-                  Sign Out
+                  <LogOut size={15} /> Sign Out
                 </button>
               </div>
             )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link to="/auth/customer/sign-in" className="btn btn-secondary" style={{ fontSize: '0.84rem', padding: '7px 14px', minHeight: '36px' }}>
+              <LogIn size={14} /> Sign In
+            </Link>
+            <Link to="/auth/register" className="btn btn-primary" style={{ fontSize: '0.84rem', padding: '7px 16px', minHeight: '36px' }}>
+              Create Account
+            </Link>
           </div>
         )}
       </div>

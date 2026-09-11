@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
-export const CustomerSignIn: React.FC = () => {
-  const { signIn } = useAuth();
+export const SignUp: React.FC = () => {
+  const { register } = useAuth();
   const navigate = useNavigate();
 
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -17,26 +19,37 @@ export const CustomerSignIn: React.FC = () => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!email || !password) {
-      setErrorMessage('Please enter both email and password.');
+    if (!fullName.trim() || !email.trim() || !password) {
+      setErrorMessage('All fields are required.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
     setIsSubmitting(true);
-    const result = await signIn(email, password);
+    const result = await register(fullName.trim(), email.trim(), password);
     setIsSubmitting(false);
 
     if (result.success) {
-      navigate('/admin/dashboard');
+      // Redirect to Business Creation Onboarding Flow
+      navigate('/admin/onboarding');
     } else {
-      setErrorMessage(result.error || 'Invalid email or password.');
+      setErrorMessage(result.error || 'Failed to create account.');
     }
   };
 
   return (
-    <div style={{ maxWidth: '440px', margin: '60px auto', padding: '0 20px' }}>
+    <div style={{ maxWidth: '460px', margin: '60px auto', padding: '0 20px' }}>
       <div className="card" style={{ padding: '36px 32px' }}>
-        {/* Branding & Header */}
+        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -47,13 +60,13 @@ export const CustomerSignIn: React.FC = () => {
           }}>
             B
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Sign in to BookMe</h1>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Create Your BookMe Account</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Manage your business, appointments, and client schedules.
+            Start accepting appointments and managing your business in minutes.
           </p>
         </div>
 
-        {/* Error Notification */}
+        {/* Error Alert */}
         {errorMessage && (
           <div style={{
             background: 'rgba(244, 63, 94, 0.1)',
@@ -73,6 +86,24 @@ export const CustomerSignIn: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {/* Full Name */}
+          <div>
+            <label className="field-label">Full Name</label>
+            <div style={{ position: 'relative' }}>
+              <User size={16} color="var(--text-faint)" style={{ position: 'absolute', left: '14px', top: '13px' }} />
+              <input
+                type="text"
+                required
+                className="input-field"
+                style={{ paddingLeft: '40px' }}
+                placeholder="Jane Doe"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
           {/* Email */}
           <div>
             <label className="field-label">Email Address</label>
@@ -83,7 +114,7 @@ export const CustomerSignIn: React.FC = () => {
                 required
                 className="input-field"
                 style={{ paddingLeft: '40px' }}
-                placeholder="name@business.com"
+                placeholder="jane@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 disabled={isSubmitting}
@@ -93,12 +124,7 @@ export const CustomerSignIn: React.FC = () => {
 
           {/* Password */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="field-label" style={{ marginBottom: 0 }}>Password</label>
-              <Link to="/auth/forgot-password" style={{ fontSize: '0.8rem', color: 'var(--brand-primary)', fontWeight: 600 }}>
-                Forgot password?
-              </Link>
-            </div>
+            <label className="field-label">Password</label>
             <div style={{ position: 'relative' }}>
               <Lock size={16} color="var(--text-faint)" style={{ position: 'absolute', left: '14px', top: '13px' }} />
               <input
@@ -106,7 +132,7 @@ export const CustomerSignIn: React.FC = () => {
                 required
                 className="input-field"
                 style={{ paddingLeft: '40px', paddingRight: '40px' }}
-                placeholder="••••••••••••"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 disabled={isSubmitting}
@@ -119,10 +145,27 @@ export const CustomerSignIn: React.FC = () => {
                   background: 'transparent', border: 'none',
                   color: 'var(--text-muted)', cursor: 'pointer', padding: '2px',
                 }}
-                title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="field-label">Confirm Password</label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={16} color="var(--text-faint)" style={{ position: 'absolute', left: '14px', top: '13px' }} />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="input-field"
+                style={{ paddingLeft: '40px' }}
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                disabled={isSubmitting}
+              />
             </div>
           </div>
 
@@ -135,19 +178,19 @@ export const CustomerSignIn: React.FC = () => {
           >
             {isSubmitting ? (
               <>
-                <Loader2 size={18} className="animate-spin" /> Signing in...
+                <Loader2 size={18} className="animate-spin" /> Creating Account...
               </>
             ) : (
-              'Sign In'
+              'Create Account'
             )}
           </button>
         </form>
 
-        {/* Link to Registration */}
+        {/* Existing Account Link */}
         <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-          Don't have an account?{' '}
-          <Link to="/auth/register" style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>
-            Create an account
+          Already have an account?{' '}
+          <Link to="/auth/customer/sign-in" style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>
+            Sign in
           </Link>
         </div>
       </div>

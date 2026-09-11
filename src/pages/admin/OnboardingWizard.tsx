@@ -1,347 +1,297 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { mockStorage } from '../../services/mockStorage';
-import { BusinessTenant } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/api';
 import {
-  Building2, Clock, Layers, Bell, CreditCard, CheckCircle2,
-  ArrowRight, ArrowLeft, Copy, ExternalLink, Sparkles
+  Building2, Layers, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Sparkles
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
+
+const CATEGORIES = [
+  'Beauty & Personal Care',
+  'Health & Wellness',
+  'Education & Consulting',
+  'Professional Services',
+  'Hospitality',
+  'Transport',
+  'Events & Creative',
+  'Fitness & Sports',
+  'Home & Repair',
+  'Other',
+];
+
+const TEMPLATES = [
+  { id: 'salon', label: 'Salon', category: 'Beauty & Personal Care', icon: '💇‍♀️' },
+  { id: 'barber', label: 'Barbershop', category: 'Beauty & Personal Care', icon: '💈' },
+  { id: 'spa', label: 'Spa & Wellness', category: 'Health & Wellness', icon: '🧘‍♀️' },
+  { id: 'clinic', label: 'Medical / Dental Clinic', category: 'Health & Wellness', icon: '🩺' },
+  { id: 'tutor', label: 'Tutor / Education', category: 'Education & Consulting', icon: '🎓' },
+  { id: 'consultant', label: 'Advisory / Consultant', category: 'Professional Services', icon: '📋' },
+  { id: 'gym', label: 'Gym / Fitness Studio', category: 'Fitness & Sports', icon: '🏋️‍♂️' },
+  { id: 'cleaning', label: 'Cleaning / Home Service', category: 'Home & Repair', icon: '🧹' },
+  { id: 'custom', label: 'Custom Business', category: 'Other', icon: '⚡' },
+];
 
 export const OnboardingWizard: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser, updateUserBusiness } = useAuth();
   const [step, setStep] = useState(1);
 
   // Form State
-  const [adminName, setAdminName] = useState('New Partner');
-  const [adminEmail, setAdminEmail] = useState('partner@example.com');
-  const [businessName, setBusinessName] = useState('Apex Studio');
-  const [category, setCategory] = useState('Creative & Design Services');
-  const [address, setAddress] = useState('Lekki Phase 1, Lagos');
-  const [serviceName, setServiceName] = useState('Initial Creative Consultation');
-  const [serviceDuration, setServiceDuration] = useState(45);
-  const [servicePrice, setServicePrice] = useState(15000);
-  const [whatsappActive, setWhatsappActive] = useState(true);
-  const [emailActive, setEmailActive] = useState(true);
-  const [paymentOption, setPaymentOption] = useState('both');
-  const [createdSlug, setCreatedSlug] = useState('apex-studio');
-  const [copied, setCopied] = useState(false);
+  const [businessName, setBusinessName] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [selectedTemplate, setSelectedTemplate] = useState('custom');
+  const [country, setCountry] = useState('Nigeria');
+  const [address, setAddress] = useState('');
+  const [description, setDescription] = useState('');
 
-  const handleFinish = () => {
-    // Generate slug
-    const cleanSlug = businessName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    setCreatedSlug(cleanSlug);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-    // Save as new tenant in mock storage
-    const newBiz: BusinessTenant = {
-      id: 'biz-' + Date.now(),
-      name: businessName,
-      slug: cleanSlug,
-      category,
-      description: `Premium appointments with ${businessName}.`,
-      phone: '+234 800 111 2222',
-      email: adminEmail,
-      address,
-      accentColor: '#10B981',
-      ownerId: 'user-new-' + Date.now(),
-      rating: 5.0,
-      reviewCount: 1,
-      notificationsEnabled: {
-        email: emailActive,
-        sms: true,
-        whatsapp: whatsappActive
-      },
-      hours: [
-        { dayOfWeek: 0, dayName: 'Sunday', isClosed: true, openTime: '10:00', closeTime: '17:00' },
-        { dayOfWeek: 1, dayName: 'Monday', isClosed: false, openTime: '09:00', closeTime: '18:00' },
-        { dayOfWeek: 2, dayName: 'Tuesday', isClosed: false, openTime: '09:00', closeTime: '18:00' },
-        { dayOfWeek: 3, dayName: 'Wednesday', isClosed: false, openTime: '09:00', closeTime: '18:00' },
-        { dayOfWeek: 4, dayName: 'Thursday', isClosed: false, openTime: '09:00', closeTime: '18:00' },
-        { dayOfWeek: 5, dayName: 'Friday', isClosed: false, openTime: '09:00', closeTime: '18:00' },
-        { dayOfWeek: 6, dayName: 'Saturday', isClosed: false, openTime: '10:00', closeTime: '16:00' }
-      ],
-      blockedDates: [],
-      reminderRules: []
-    };
-
-    mockStorage.addBusiness(newBiz);
-
-    // Add first service
-    mockStorage.saveService({
-      id: 'srv-' + Date.now(),
-      businessId: newBiz.id,
-      name: serviceName,
-      category: 'Consulting',
-      description: 'First service created during rapid onboarding.',
-      durationMinutes: serviceDuration,
-      bufferMinutes: 10,
-      price: servicePrice,
-      currency: 'NGN',
-      isActive: true,
-      bookingCount: 0
-    });
-
-    confetti({ particleCount: 70, spread: 80 });
-    setStep(7);
+  const handleNext = () => {
+    setErrorMessage('');
+    if (step === 1) {
+      if (!businessName.trim()) {
+        setErrorMessage('Business name is required.');
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      setStep(3);
+    }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`https://bookme.io/business/${createdSlug}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleFinish = async () => {
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    const res = await api.createBusiness({
+      name: businessName.trim(),
+      category,
+      template: selectedTemplate,
+      country,
+      address: address.trim(),
+      description: description.trim(),
+    });
+
+    setIsSubmitting(false);
+
+    if (res.success && res.data) {
+      updateUserBusiness(res.data.id, res.data.name, res.data.slug);
+      // Redirect to clean empty Dashboard
+      navigate('/admin/dashboard');
+    } else {
+      setErrorMessage(res.error || 'Failed to create business.');
+    }
   };
 
   return (
-    <div style={{ maxWidth: '720px', margin: '40px auto', padding: '0 20px 80px' }}>
+    <div style={{ maxWidth: '680px', margin: '40px auto', padding: '0 20px 80px' }}>
       
-      {/* Progress Stepper */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-          <span>Step {step} of 7</span>
-          <span>{Math.round((step / 7) * 100)}% Completed</span>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '4px 14px', borderRadius: '99px',
+          background: 'var(--brand-light)', color: 'var(--brand-primary)',
+          fontSize: '0.8rem', fontWeight: 700, marginBottom: '12px',
+        }}>
+          <Sparkles size={14} /> Step {step} of 3
         </div>
-        <div style={{ width: '100%', height: '6px', background: '#1E293B', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ width: `${(step / 7) * 100}%`, height: '100%', background: '#10B981', transition: 'width 0.3s ease' }} />
-        </div>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '6px' }}>Set Up Your Business</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
+          Configure your business details and template to launch your appointment booking page.
+        </p>
       </div>
 
-      <div className="card" style={{ padding: '36px' }}>
-        
-        {/* STEP 1: Account Creation */}
-        {step === 1 && (
-          <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 1</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Create Your Administrator Account</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              Your credentials will allow you to manage appointments, staff, and payments.
-            </p>
+      {/* Error Banner */}
+      {errorMessage && (
+        <div style={{
+          background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.3)',
+          color: '#FB7185', padding: '12px 16px', borderRadius: 'var(--radius-md)',
+          fontSize: '0.88rem', marginBottom: '24px',
+        }}>
+          {errorMessage}
+        </div>
+      )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Full Name</label>
-                <input type="text" className="input-field" value={adminName} onChange={e => setAdminName(e.target.value)} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Work Email</label>
-                <input type="email" className="input-field" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Password</label>
-                <input type="password" readOnly className="input-field" value="••••••••••••" />
-              </div>
+      {/* Stepper Card */}
+      <div className="card" style={{ padding: '36px' }}>
+
+        {/* STEP 1: Business Details */}
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>
+              1. General Business Information
+            </h2>
+
+            <div>
+              <label className="field-label">Business Name *</label>
+              <input
+                type="text"
+                required
+                className="input-field"
+                placeholder="e.g. Apex Wellness Studio"
+                value={businessName}
+                onChange={e => setBusinessName(e.target.value)}
+              />
             </div>
+
+            <div>
+              <label className="field-label">Category / Industry</label>
+              <select
+                className="input-field"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="field-label">Country</label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="e.g. Nigeria, United Kingdom, United States"
+                value={country}
+                onChange={e => setCountry(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="field-label">Location / Address</label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="e.g. Suite 4B, Victoria Island, Lagos"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="field-label">Short Description</label>
+              <textarea
+                className="input-field"
+                rows={3}
+                placeholder="Briefly describe the services your business offers..."
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleNext}
+              style={{ width: '100%', marginTop: '10px', minHeight: '44px' }}
+            >
+              Continue to Templates <ArrowRight size={16} />
+            </button>
           </div>
         )}
 
-        {/* STEP 2: Business Information */}
+        {/* STEP 2: Template Selection */}
         {step === 2 && (
           <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 2</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Tell Us About Your Business</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              This appears at the top of your public booking page.
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '6px' }}>
+              2. Choose a Business Template Preset
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '24px' }}>
+              Select a configuration template for your industry. You can customize services and rules later.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Business Name</label>
-                <input type="text" className="input-field" value={businessName} onChange={e => setBusinessName(e.target.value)} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Business Category</label>
-                <input type="text" className="input-field" value={category} onChange={e => setCategory(e.target.value)} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Location / Address</label>
-                <input type="text" className="input-field" value={address} onChange={e => setAddress(e.target.value)} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Business Hours */}
-        {step === 3 && (
-          <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 3</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Standard Operating Hours</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              Set when customers are allowed to schedule slots with you.
-            </p>
-
-            <div style={{ background: '#0B0F19', padding: '16px', borderRadius: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Monday – Friday:</span>
-                <strong>09:00 AM – 06:00 PM</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Saturday:</span>
-                <strong>10:00 AM – 04:00 PM</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#FB7185' }}>
-                <span>Sunday:</span>
-                <strong>Closed</strong>
-              </div>
-            </div>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-faint)', marginTop: '12px' }}>
-              * You can fine-tune specific break times and blocked holiday dates later in Settings.
-            </p>
-          </div>
-        )}
-
-        {/* STEP 4: First Service */}
-        {step === 4 && (
-          <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 4</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Create Your First Service</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              Add at least one service so your booking page can go live immediately.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div>
-                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Service Title</label>
-                <input type="text" className="input-field" value={serviceName} onChange={e => setServiceName(e.target.value)} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Duration (Mins)</label>
-                  <input type="number" className="input-field" value={serviceDuration} onChange={e => setServiceDuration(Number(e.target.value))} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Price (NGN)</label>
-                  <input type="number" className="input-field" value={servicePrice} onChange={e => setServicePrice(Number(e.target.value))} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 5: Notifications */}
-        {step === 5 && (
-          <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 5</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Multi-Channel Notifications</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              Choose how BookMe will confirm bookings and remind your clients.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#0B0F19', padding: '14px', borderRadius: '8px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={whatsappActive} onChange={e => setWhatsappActive(e.target.checked)} />
-                <div>
-                  <div style={{ fontWeight: 600 }}>WhatsApp Confirmation & Reminders</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Automated template alerts direct to client phones</div>
-                </div>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#0B0F19', padding: '14px', borderRadius: '8px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={emailActive} onChange={e => setEmailActive(e.target.checked)} />
-                <div>
-                  <div style={{ fontWeight: 600 }}>Email Confirmations</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Full calendar invite (.ics) attached to every booking</div>
-                </div>
-              </label>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 6: Payments */}
-        {step === 6 && (
-          <div>
-            <span className="badge badge-confirmed" style={{ marginBottom: '8px' }}>Step 6</span>
-            <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Payment Preferences</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '24px' }}>
-              Determine how you collect revenue from clients.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { id: 'online', label: 'Require Full Online Payment', desc: 'Clients must pay by card before booking confirms' },
-                { id: 'both', label: 'Allow Online & In-Venue (Recommended)', desc: 'Gives clients maximum flexibility to pay with card or at reception' },
-                { id: 'venue', label: 'Pay at Venue Only', desc: 'No online cards required during booking' }
-              ].map(opt => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '28px' }}>
+              {TEMPLATES.map(t => (
                 <div
-                  key={opt.id}
-                  onClick={() => setPaymentOption(opt.id)}
+                  key={t.id}
+                  onClick={() => setSelectedTemplate(t.id)}
                   style={{
-                    background: paymentOption === opt.id ? 'rgba(16, 185, 129, 0.1)' : '#0B0F19',
-                    border: '1px solid ' + (paymentOption === opt.id ? '#10B981' : 'var(--border-subtle)'),
                     padding: '16px',
-                    borderRadius: '10px',
-                    cursor: 'pointer'
+                    borderRadius: 'var(--radius-md)',
+                    border: selectedTemplate === t.id ? '2px solid var(--brand-primary)' : '1px solid var(--border-subtle)',
+                    background: selectedTemplate === t.id ? 'var(--brand-light)' : 'var(--bg-app)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <div style={{ fontWeight: 600, color: paymentOption === opt.id ? '#34D399' : '#F8FAFC' }}>{opt.label}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{opt.desc}</div>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{t.icon}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)' }}>{t.label}</div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '2px' }}>{t.category}</div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* STEP 7: Launch & Finish */}
-        {step === 7 && (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <CheckCircle2 size={38} color="#10B981" />
-            </div>
-
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '8px' }}>Setup Complete! You are Live!</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '24px' }}>
-              Your business booking engine has been generated and is ready to accept appointments.
-            </p>
-
-            <div style={{
-              background: '#0B0F19',
-              border: '1px solid var(--border-strong)',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '28px'
-            }}>
-              <span style={{ fontSize: '0.95rem', color: '#34D399', fontWeight: 600, wordBreak: 'break-all' }}>
-                bookme.io/business/{createdSlug}
-              </span>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
-                onClick={handleCopy}
+                type="button"
                 className="btn btn-secondary"
-                style={{ padding: '6px 14px', fontSize: '0.82rem', minHeight: '34px' }}
+                onClick={() => setStep(1)}
+                style={{ flex: 1 }}
               >
-                <Copy size={14} /> {copied ? 'Copied!' : 'Copy Link'}
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Link to={`/business/${createdSlug}`} target="_blank" className="btn btn-secondary">
-                Preview Booking Page <ExternalLink size={15} />
-              </Link>
-              <Link to="/admin/dashboard" className="btn btn-primary">
-                Open Admin Dashboard <ArrowRight size={15} />
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Stepper Navigation Buttons */}
-        {step < 7 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', borderTop: '1px solid var(--border-subtle)', paddingTop: '20px' }}>
-            {step > 1 ? (
-              <button className="btn btn-secondary" onClick={() => setStep(step - 1)}>
                 <ArrowLeft size={16} /> Back
               </button>
-            ) : <div />}
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleNext}
+                style={{ flex: 2 }}
+              >
+                Review & Confirm <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
-            {step < 6 ? (
-              <button className="btn btn-primary" onClick={() => setStep(step + 1)}>
-                Next Step <ArrowRight size={16} />
+        {/* STEP 3: Review & Create */}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '4px' }}>
+              3. Review & Create Your Business
+            </h2>
+
+            <div style={{
+              background: 'var(--bg-app)', border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)', padding: '20px', display: 'flex',
+              flexDirection: 'column', gap: '10px', fontSize: '0.9rem',
+            }}>
+              <div><strong style={{ color: 'var(--text-muted)' }}>Business Name:</strong> {businessName}</div>
+              <div><strong style={{ color: 'var(--text-muted)' }}>Category:</strong> {category}</div>
+              <div><strong style={{ color: 'var(--text-muted)' }}>Template:</strong> {TEMPLATES.find(t => t.id === selectedTemplate)?.label}</div>
+              <div><strong style={{ color: 'var(--text-muted)' }}>Location:</strong> {address || country}</div>
+              {description && <div><strong style={{ color: 'var(--text-muted)' }}>Description:</strong> {description}</div>}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setStep(2)}
+                disabled={isSubmitting}
+                style={{ flex: 1 }}
+              >
+                <ArrowLeft size={16} /> Back
               </button>
-            ) : (
-              <button className="btn btn-primary" onClick={handleFinish}>
-                <Sparkles size={16} /> Finish & Launch
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleFinish}
+                disabled={isSubmitting}
+                style={{ flex: 2, minHeight: '44px' }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" /> Creating Business...
+                  </>
+                ) : (
+                  <>
+                    Launch Business Dashboard <CheckCircle2 size={16} />
+                  </>
+                )}
               </button>
-            )}
+            </div>
           </div>
         )}
 

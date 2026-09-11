@@ -61,7 +61,7 @@ export const BusinessBookingPage: React.FC = () => {
     if (currentUser) {
       setCustomerName(currentUser.fullName);
       setCustomerEmail(currentUser.email);
-      setCustomerPhone(currentUser.phone);
+      setCustomerPhone((currentUser as any).phone || '');
     }
   }, [currentUser?.id]);
 

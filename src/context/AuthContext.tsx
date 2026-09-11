@@ -1,51 +1,113 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types';
-import { INITIAL_USERS } from '../mock/initialData';
+import { api, setAuthToken, getAuthToken } from '../services/api';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'CUSTOMER' | 'BUSINESS_ADMIN' | 'PLATFORM_ADMIN';
+  businessId: string | null;
+  businessName?: string | null;
+  businessSlug?: string | null;
+}
 
 interface AuthContextType {
-  currentUser: User | null;
-  role: User['role'] | 'GUEST';
+  currentUser: AuthUser | null;
+  role: AuthUser['role'] | 'GUEST';
   isAuthenticated: boolean;
-  signInAs: (userId: string) => void;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
-  setRole: (role: User['role']) => void;
-  usersList: User[];
+  refreshSession: () => Promise<void>;
+  updateUserBusiness: (businessId: string, businessName?: string, businessSlug?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Default to Returning Customer (Alex Morgan) so the ultra-fast 5-second flow is immediately testable!
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('bookme_current_user');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const refreshSession = async () => {
+    const token = getAuthToken();
+    if (!token) {
+      setCurrentUser(null);
+      setIsLoading(false);
+      return;
     }
-    return INITIAL_USERS[2]; // Alex Morgan
-  });
+
+    const res = await api.getMe();
+    if (res.success && res.data) {
+      setCurrentUser({
+        id: res.data.id,
+        email: res.data.email,
+        fullName: res.data.full_name || 'User',
+        role: res.data.role as any || 'BUSINESS_ADMIN',
+        businessId: res.data.business_id || null,
+        businessName: res.data.business_name || null,
+        businessSlug: res.data.business_slug || null,
+      });
+    } else {
+      setAuthToken(null);
+      setCurrentUser(null);
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('bookme_current_user', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('bookme_current_user');
-    }
-  }, [currentUser]);
+    refreshSession();
+  }, []);
 
-  const signInAs = (userId: string) => {
-    const user = INITIAL_USERS.find(u => u.id === userId);
-    if (user) {
-      setCurrentUser(user);
+  const signIn = async (email: string, password: string) => {
+    const res = await api.login(email, password);
+    if (res.success && res.data) {
+      setAuthToken(res.data.access_token);
+      const userObj: AuthUser = {
+        id: res.data.id,
+        email: res.data.email,
+        fullName: res.data.full_name,
+        role: (res.data.role as any) || 'BUSINESS_ADMIN',
+        businessId: res.data.business_id || null,
+        businessName: res.data.business_name || null,
+        businessSlug: res.data.business_slug || null,
+      };
+      setCurrentUser(userObj);
+      return { success: true };
     }
+    return { success: false, error: res.error || 'Failed to sign in' };
+  };
+
+  const register = async (fullName: string, email: string, password: string) => {
+    const res = await api.register(fullName, email, password);
+    if (res.success && res.data) {
+      setAuthToken(res.data.access_token);
+      const userObj: AuthUser = {
+        id: res.data.id,
+        email: res.data.email,
+        fullName: res.data.full_name,
+        role: (res.data.role as any) || 'BUSINESS_ADMIN',
+        businessId: null,
+      };
+      setCurrentUser(userObj);
+      return { success: true };
+    }
+    return { success: false, error: res.error || 'Failed to register' };
   };
 
   const signOut = () => {
+    setAuthToken(null);
     setCurrentUser(null);
   };
 
-  const setRole = (role: User['role']) => {
+  const updateUserBusiness = (businessId: string, businessName?: string, businessSlug?: string) => {
     if (currentUser) {
-      setCurrentUser({ ...currentUser, role });
+      setCurrentUser({
+        ...currentUser,
+        businessId,
+        businessName: businessName || currentUser.businessName,
+        businessSlug: businessSlug || currentUser.businessSlug,
+      });
     }
   };
 
@@ -55,10 +117,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         role: currentUser ? currentUser.role : 'GUEST',
         isAuthenticated: !!currentUser,
-        signInAs,
+        isLoading,
+        signIn,
+        register,
         signOut,
-        setRole,
-        usersList: INITIAL_USERS
+        refreshSession,
+        updateUserBusiness,
       }}
     >
       {children}
