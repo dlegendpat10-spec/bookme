@@ -88,14 +88,16 @@ export const MyBookings: React.FC = () => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             style={{
-              background: activeTab === tab ? '#10B981' : 'transparent',
+              background: activeTab === tab ? 'var(--brand-primary)' : 'transparent',
               color: activeTab === tab ? '#FFFFFF' : 'var(--text-muted)',
               border: 'none',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer'
+              padding: '8px 18px',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.18s ease',
+              boxShadow: activeTab === tab ? 'var(--shadow-glow)' : 'none',
             }}
           >
             {tab.charAt(0) + tab.slice(1).toLowerCase()} ({bookings.filter(b => {

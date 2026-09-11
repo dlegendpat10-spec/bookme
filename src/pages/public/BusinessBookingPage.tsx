@@ -8,10 +8,10 @@ import { INITIAL_ADS } from '../../mock/initialData';
 import confetti from 'canvas-confetti';
 import {
   Check, Clock, MapPin, Phone, Star,
-  ShieldCheck, Zap, CreditCard, ArrowRight, Tag
+  ShieldCheck, Zap, CreditCard, ArrowRight, Tag,
+  Calendar as CalendarIcon, CheckCircle2, User, Sparkles
 } from 'lucide-react';
 
-// Unsplash images per business slug
 const BIZ_IMAGES: Record<string, string> = {
   'luxe-grooming': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=75',
   'serenity-wellness': 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=1200&q=75',
@@ -23,7 +23,6 @@ export const BusinessBookingPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
 
-  // ── Core state ──────────────────────────────────────────────────────────
   const [business, setBusiness] = useState<BusinessTenant | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -33,22 +32,18 @@ export const BusinessBookingPage: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
-  // Customer details
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
 
-  // UI states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [conflictSlots, setConflictSlots] = useState<TimeSlot[]>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
-  // Ref to prevent slot re-selection on every re-render
   const slotAutoSelected = useRef(false);
 
-  // ── Load business + services once ───────────────────────────────────────
   useEffect(() => {
     const slug = businessSlug || 'luxe-grooming';
     const biz = mockStorage.getBusinessBySlug(slug) || mockStorage.getBusinesses()[0];
@@ -60,25 +55,21 @@ export const BusinessBookingPage: React.FC = () => {
         setSelectedService(srvs[0]);
       }
     }
-    // Only run when slug changes
   }, [businessSlug]);
 
-  // ── Sync customer details when persona switches ──────────────────────────
   useEffect(() => {
     if (currentUser) {
       setCustomerName(currentUser.fullName);
       setCustomerEmail(currentUser.email);
       setCustomerPhone(currentUser.phone);
     }
-  }, [currentUser?.id]); // Only re-run when actual user ID changes (not object reference)
+  }, [currentUser?.id]);
 
-  // ── Load availability slots (fixed: stable deps) ─────────────────────────
   useEffect(() => {
     if (!business || !selectedService) return;
     const slots = mockStorage.getAvailableSlots(business.id, selectedService.id, selectedDate);
     setAvailableSlots(slots);
 
-    // Auto-select first available on service/date change, but not on every render
     if (!slotAutoSelected.current) {
       const first = slots.find(s => s.isAvailable);
       if (first) {
@@ -86,10 +77,8 @@ export const BusinessBookingPage: React.FC = () => {
         slotAutoSelected.current = true;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business?.id, selectedService?.id, selectedDate]);
 
-  // Reset auto-select flag when service or date changes (so new date/service gets auto-pick)
   const handleSelectService = (srv: Service) => {
     setSelectedService(srv);
     setSelectedSlot(null);
@@ -102,7 +91,6 @@ export const BusinessBookingPage: React.FC = () => {
     slotAutoSelected.current = false;
   };
 
-  // ── Date strip ───────────────────────────────────────────────────────────
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
@@ -111,11 +99,9 @@ export const BusinessBookingPage: React.FC = () => {
     return { dateStr, dayName, dayNum: d.getDate(), month: d.toLocaleDateString('en-US', { month: 'short' }) };
   });
 
-  // ── Service categories ───────────────────────────────────────────────────
   const categories = ['All', ...Array.from(new Set(services.map(s => s.category)))];
   const filteredServices = activeCategory === 'All' ? services : services.filter(s => s.category === activeCategory);
 
-  // ── Booking submission ───────────────────────────────────────────────────
   const handleConfirmBooking = () => {
     if (!business || !selectedService || !selectedSlot) return;
     setIsSubmitting(true);
@@ -146,20 +132,19 @@ export const BusinessBookingPage: React.FC = () => {
       }
 
       if (result.success && result.booking) {
-        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 110, spread: 80, origin: { y: 0.55 } });
         navigate(`/business/${business.slug}/book/success?ref=${result.booking.bookingReference}`);
       }
     }, 180);
   };
 
-  // ── Ad for this business ─────────────────────────────────────────────────
   const businessAd = business ? INITIAL_ADS.find(a => a.businessId === business.id && a.placement === 'HERO_BANNER' && a.isActive) : null;
 
   if (!business) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh' }}>
         <div className="animate-pulse" style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-          Loading business profile…
+          Loading business portal…
         </div>
       </div>
     );
@@ -169,8 +154,8 @@ export const BusinessBookingPage: React.FC = () => {
 
   return (
     <div>
-      {/* ── Hero Banner with Business Photo ──────────────────────────────── */}
-      <div style={{ position: 'relative', height: '280px', overflow: 'hidden' }}>
+      {/* ── Hero Header ─────────────────────────────────────────────────── */}
+      <div style={{ position: 'relative', height: '290px', overflow: 'hidden' }}>
         <img
           src={heroImage}
           alt={business.name}
@@ -178,55 +163,59 @@ export const BusinessBookingPage: React.FC = () => {
         />
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.75) 100%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%)',
         }} />
         <div style={{
-          position: 'absolute', bottom: '28px', left: '28px', right: '28px',
+          position: 'absolute', bottom: '32px', left: '32px', right: '32px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px',
         }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <span className="badge" style={{
-                background: 'rgba(16,185,129,0.2)', color: '#34D399',
-                border: '1px solid rgba(16,185,129,0.4)', backdropFilter: 'blur(4px)',
+                background: 'var(--brand-light)', color: 'var(--brand-primary)',
+                border: '1px solid var(--brand-primary)', backdropFilter: 'blur(6px)',
               }}>
-                <ShieldCheck size={12} /> Verified
+                <ShieldCheck size={13} /> Verified Business
               </span>
-              <span style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)' }}>{business.category}</span>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+                {business.category}
+              </span>
             </div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 900, color: '#fff', lineHeight: 1.15 }}>{business.name}</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginTop: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <MapPin size={13} style={{ color: '#34D399' }} /> {business.address}
+            <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+              {business.name}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.86rem', color: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={14} style={{ color: 'var(--brand-primary)' }} /> {business.address}
               </span>
-              <span style={{ fontSize: '0.84rem', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <Phone size={13} style={{ color: '#34D399' }} /> {business.phone}
+              <span style={{ fontSize: '0.86rem', color: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Phone size={14} style={{ color: 'var(--brand-primary)' }} /> {business.phone}
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#FBBF24', fontSize: '0.88rem', fontWeight: 700 }}>
-                <Star size={14} fill="#FBBF24" /> {business.rating} <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>({business.reviewCount} reviews)</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#FBBF24', fontSize: '0.9rem', fontWeight: 800 }}>
+                <Star size={15} fill="#FBBF24" /> {business.rating} <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 400 }}>({business.reviewCount} reviews)</span>
               </span>
             </div>
           </div>
 
           <div style={{
-            background: 'rgba(16,185,129,0.15)', backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(16,185,129,0.35)', borderRadius: '12px',
-            padding: '10px 18px', textAlign: 'center',
+            background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)',
+            border: '1px solid var(--border-strong)', borderRadius: '14px',
+            padding: '12px 20px', textAlign: 'center', boxShadow: 'var(--shadow-md)',
           }}>
-            <div style={{ color: '#34D399', fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Zap size={15} fill="#34D399" /> Fast Booking
+            <div style={{ color: 'var(--brand-primary)', fontWeight: 800, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={16} fill="var(--brand-primary)" /> Instant Confirmation
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Book in &lt; 5 seconds</div>
+            <div style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.65)', marginTop: '2px' }}>Automated slot locking</div>
           </div>
         </div>
       </div>
 
-      {/* ── Ad Promotion Banner ───────────────────────────────────────────── */}
+      {/* ── Promotion Banner ───────────────────────────────────────────── */}
       {businessAd && (
         <div style={{
           background: 'linear-gradient(135deg, var(--brand-light) 0%, transparent 100%)',
           borderBottom: '1px solid var(--brand-primary)',
-          padding: '14px 28px',
+          padding: '14px 32px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           gap: '16px', flexWrap: 'wrap',
         }}>
@@ -249,7 +238,7 @@ export const BusinessBookingPage: React.FC = () => {
                 {businessAd.discountCode}
               </div>
             )}
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.84rem', color: 'var(--text-muted)', fontWeight: 600 }}>
               {businessAd.discountPercent}% OFF selected services
             </span>
           </div>
@@ -257,31 +246,44 @@ export const BusinessBookingPage: React.FC = () => {
       )}
 
       {/* ── Main Booking Layout ───────────────────────────────────────────── */}
-      <div className="page-shell" style={{ paddingTop: '32px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px', alignItems: 'flex-start' }}>
+      <div className="page-shell" style={{ paddingTop: '36px' }}>
+
+        {/* 4-Step Progress Indicator */}
+        <div className="step-indicator">
+          <div className={`step-item ${selectedService ? 'completed' : 'active'}`}>
+            <span className="step-number">{selectedService ? '✓' : '1'}</span> Select Service
+          </div>
+          <span style={{ color: 'var(--border-strong)' }}>→</span>
+          <div className={`step-item ${selectedSlot ? 'completed' : selectedService ? 'active' : ''}`}>
+            <span className="step-number">{selectedSlot ? '✓' : '2'}</span> Choose Date & Time
+          </div>
+          <span style={{ color: 'var(--border-strong)' }}>→</span>
+          <div className={`step-item ${customerName ? 'completed' : selectedSlot ? 'active' : ''}`}>
+            <span className="step-number">{customerName ? '✓' : '3'}</span> Customer Info
+          </div>
+          <span style={{ color: 'var(--border-strong)' }}>→</span>
+          <div className={`step-item ${selectedService && selectedSlot ? 'active' : ''}`}>
+            <span className="step-number">4</span> Confirm & Book
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'flex-start' }}>
 
           {/* ── LEFT: Service Selector ─────────────────────────────────── */}
           <div>
-            <div style={{ marginBottom: '18px' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>1</span>
-                Select a Service
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 900, flexShrink: 0 }}>1</span>
+                Choose Service
               </h2>
 
               {/* Category Chips */}
-              <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    style={{
-                      background: activeCategory === cat ? 'var(--brand-primary)' : 'var(--bg-elevated)',
-                      color: activeCategory === cat ? '#fff' : 'var(--text-muted)',
-                      border: `1px solid ${activeCategory === cat ? 'var(--brand-primary)' : 'var(--border-subtle)'}`,
-                      padding: '5px 14px', borderRadius: '99px',
-                      fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
+                    className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
                   >
                     {cat}
                   </button>
@@ -289,52 +291,52 @@ export const BusinessBookingPage: React.FC = () => {
               </div>
 
               {/* Service Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {filteredServices.map(srv => {
                   const isSel = selectedService?.id === srv.id;
                   return (
                     <button
                       key={srv.id}
                       onClick={() => handleSelectService(srv)}
-                      className="card"
+                      className={`glass-card ${isSel ? 'glow-card' : ''}`}
                       style={{
-                        cursor: 'pointer', textAlign: 'left', padding: '18px 20px',
+                        cursor: 'pointer', textAlign: 'left', padding: '20px 22px',
                         borderColor: isSel ? 'var(--brand-primary)' : 'var(--border-subtle)',
                         background: isSel ? 'var(--brand-light)' : 'var(--bg-card)',
                         boxShadow: isSel ? 'var(--shadow-glow)' : 'none',
                         position: 'relative',
-                        transition: 'all 0.18s',
+                        transition: 'all 0.2s ease',
                       }}
                     >
                       {srv.badge && (
                         <span style={{
-                          position: 'absolute', top: '14px', right: '14px',
+                          position: 'absolute', top: '16px', right: '16px',
                           fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase',
-                          letterSpacing: '0.06em', padding: '3px 9px', borderRadius: '99px',
+                          letterSpacing: '0.06em', padding: '3px 10px', borderRadius: '99px',
                           background: 'var(--brand-light)', color: 'var(--brand-primary)',
                           border: '1px solid var(--brand-primary)',
                         }}>
                           {srv.badge}
                         </span>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', paddingRight: srv.badge ? '90px' : 0 }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: isSel ? 'var(--brand-primary)' : 'var(--text-main)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', paddingRight: srv.badge ? '90px' : 0 }}>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isSel ? 'var(--brand-primary)' : 'var(--text-main)' }}>
                           {srv.name}
                         </h3>
-                        <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.15rem', fontWeight: 800, flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.25rem', fontWeight: 900, flexShrink: 0, color: isSel ? 'var(--brand-primary)' : 'var(--text-main)' }}>
                           {srv.currency} {srv.price.toLocaleString()}
                         </span>
                       </div>
-                      <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '10px' }}>
+                      <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '12px' }}>
                         {srv.description}
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={12} /> {srv.durationMinutes} min
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Clock size={13} /> {srv.durationMinutes} minutes
                         </span>
                         {isSel && (
-                          <span style={{ fontSize: '0.78rem', color: 'var(--brand-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Check size={13} /> Selected
+                          <span style={{ fontSize: '0.8rem', color: 'var(--brand-primary)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <CheckCircle2 size={15} /> Selected
                           </span>
                         )}
                       </div>
@@ -347,13 +349,13 @@ export const BusinessBookingPage: React.FC = () => {
 
           {/* ── RIGHT: Date + Time + Customer Info ────────────────────── */}
           <div>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900, flexShrink: 0 }}>2</span>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 900, flexShrink: 0 }}>2</span>
               Choose Date & Time
             </h2>
 
             {/* Date Strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', marginBottom: '22px' }}>
               {dateOptions.map(d => {
                 const isDateSel = selectedDate === d.dateStr;
                 return (
@@ -361,39 +363,40 @@ export const BusinessBookingPage: React.FC = () => {
                     key={d.dateStr}
                     onClick={() => handleSelectDate(d.dateStr)}
                     style={{
-                      background: isDateSel ? 'var(--brand-primary)' : 'var(--bg-elevated)',
+                      background: isDateSel ? 'var(--brand-primary)' : 'var(--bg-card)',
                       color: isDateSel ? '#fff' : 'var(--text-muted)',
                       border: `1px solid ${isDateSel ? 'var(--brand-primary)' : 'var(--border-subtle)'}`,
-                      borderRadius: '10px', padding: '10px 4px',
+                      borderRadius: '12px', padding: '12px 4px',
                       textAlign: 'center', cursor: 'pointer',
-                      transition: 'all 0.15s',
+                      transition: 'all 0.18s ease',
+                      boxShadow: isDateSel ? 'var(--shadow-glow)' : 'none',
                     }}
                   >
-                    <div style={{ fontSize: '0.66rem', fontWeight: 600, opacity: isDateSel ? 0.9 : 0.65 }}>{d.dayName}</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, margin: '2px 0' }}>{d.dayNum}</div>
-                    <div style={{ fontSize: '0.62rem', opacity: isDateSel ? 0.85 : 0.55 }}>{d.month}</div>
+                    <div style={{ fontSize: '0.68rem', fontWeight: 700, opacity: isDateSel ? 0.95 : 0.65 }}>{d.dayName}</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, margin: '2px 0' }}>{d.dayNum}</div>
+                    <div style={{ fontSize: '0.64rem', opacity: isDateSel ? 0.9 : 0.6 }}>{d.month}</div>
                   </button>
                 );
               })}
             </div>
 
             {/* Time Slot Grid */}
-            <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Clock size={16} style={{ color: 'var(--brand-primary)' }} /> Available Slots
+            <div className="glass-card" style={{ marginBottom: '22px', padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={18} style={{ color: 'var(--brand-primary)' }} /> Available Slots
                 </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)', fontWeight: 600 }}>
-                  {availableSlots.filter(s => s.isAvailable).length} open
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-faint)', fontWeight: 600 }}>
+                  {availableSlots.filter(s => s.isAvailable).length} open slots
                 </span>
               </div>
 
               {availableSlots.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '28px 12px', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-                  No slots available. Try another date.
+                <div style={{ textAlign: 'center', padding: '32px 12px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                  No slots available on this date. Please select another day.
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   {availableSlots.map(slot => {
                     const isSel = selectedSlot?.time === slot.time;
                     return (
@@ -406,11 +409,12 @@ export const BusinessBookingPage: React.FC = () => {
                           color: !slot.isAvailable ? 'var(--text-faint)' : isSel ? '#fff' : 'var(--text-main)',
                           border: `1px solid ${!slot.isAvailable ? 'var(--border-subtle)' : isSel ? 'var(--brand-primary)' : 'var(--border-strong)'}`,
                           textDecoration: !slot.isAvailable ? 'line-through' : 'none',
-                          borderRadius: '8px', padding: '10px 6px',
-                          fontSize: '0.84rem', fontWeight: 600,
+                          borderRadius: '10px', padding: '12px 8px',
+                          fontSize: '0.86rem', fontWeight: 700,
                           cursor: slot.isAvailable ? 'pointer' : 'not-allowed',
                           opacity: !slot.isAvailable ? 0.45 : 1,
-                          transition: 'all 0.15s',
+                          transition: 'all 0.18s ease',
+                          boxShadow: isSel ? 'var(--shadow-glow)' : 'none',
                         }}
                       >
                         {slot.displayTime}
@@ -422,43 +426,54 @@ export const BusinessBookingPage: React.FC = () => {
             </div>
 
             {/* Customer Details */}
-            <div className="card" style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 900 }}>3</span>
-                  Your Details
+            <div className="glass-card" style={{ padding: '22px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--brand-primary)', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 900 }}>3</span>
+                  Customer Information
                 </span>
                 {isAuthenticated && (
-                  <span className="badge" style={{ background: 'rgba(59,130,246,0.12)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.25)' }}>
-                    Auto-filled
+                  <span className="badge" style={{ background: 'var(--brand-light)', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)' }}>
+                    Auto-Filled Profile
                   </span>
                 )}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Full Name"
-                  value={customerName}
-                  onChange={e => setCustomerName(e.target.value)}
-                />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <input type="email" className="input-field" placeholder="Email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} />
-                  <input type="tel" className="input-field" placeholder="Phone" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label className="field-label">Full Name</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Enter your full name"
+                    value={customerName}
+                    onChange={e => setCustomerName(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="field-label">Email Address</label>
+                    <input type="email" className="input-field" placeholder="email@domain.com" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="field-label">Phone Number</label>
+                    <input type="tel" className="input-field" placeholder="+1 234 567 890" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+                  </div>
                 </div>
 
-                {/* Saved card display */}
+                {/* Tokenized Payment Card View */}
                 <div style={{
                   background: 'var(--brand-light)', border: '1px solid var(--brand-primary)',
-                  borderRadius: '8px', padding: '10px 14px',
+                  borderRadius: '12px', padding: '12px 16px', marginTop: '6px',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                    <CreditCard size={16} style={{ color: 'var(--brand-primary)' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.88rem' }}>
+                    <CreditCard size={18} style={{ color: 'var(--brand-primary)' }} />
                     <span>Mastercard <strong>•••• 4012</strong></span>
                   </div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--brand-primary)', fontWeight: 700 }}>1-TAP READY</span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--brand-primary)', fontWeight: 900, letterSpacing: '0.05em' }}>
+                    1-TAP PAYMENT READY
+                  </span>
                 </div>
               </div>
             </div>
@@ -469,27 +484,27 @@ export const BusinessBookingPage: React.FC = () => {
       {/* ── Sticky Confirm Bar ────────────────────────────────────────────── */}
       {selectedService && selectedSlot && (
         <div style={{
-          position: 'fixed', bottom: '16px', left: '50%',
+          position: 'fixed', bottom: '20px', left: '50%',
           transform: 'translateX(-50%)',
-          width: 'calc(100% - 40px)', maxWidth: '820px',
+          width: 'calc(100% - 40px)', maxWidth: '840px',
           background: 'var(--bg-card)',
-          backdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(20px)',
           border: '1px solid var(--brand-primary)',
-          borderRadius: '16px', padding: '14px 22px',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.5), var(--shadow-glow)',
+          borderRadius: '20px', padding: '16px 26px',
+          boxShadow: '0 16px 40px rgba(0,0,0,0.5), var(--shadow-glow)',
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
-          zIndex: 800, animation: 'slideUp 0.2s ease-out',
+          zIndex: 800, animation: 'slideUp 0.22s cubic-bezier(0.16,1,0.3,1)',
         }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '3px' }}>
-              <span style={{ fontWeight: 800, fontSize: '1rem' }}>{selectedService.name}</span>
-              <span className="badge badge-confirmed">{selectedSlot.displayTime}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+              <span style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--text-main)' }}>{selectedService.name}</span>
+              <span className="badge badge-confirmed" style={{ fontSize: '0.78rem' }}>{selectedSlot.displayTime}</span>
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
               {selectedDate === todayStr ? 'Today' : selectedDate}
               &nbsp;·&nbsp;{selectedService.durationMinutes} min
-              &nbsp;·&nbsp;<strong style={{ color: 'var(--text-main)' }}>{selectedService.currency} {selectedService.price.toLocaleString()}</strong>
+              &nbsp;·&nbsp;<strong style={{ color: 'var(--brand-primary)', fontSize: '0.95rem' }}>{selectedService.currency} {selectedService.price.toLocaleString()}</strong>
             </div>
           </div>
 
@@ -497,12 +512,12 @@ export const BusinessBookingPage: React.FC = () => {
             className="btn btn-fast-book"
             onClick={handleConfirmBooking}
             disabled={isSubmitting}
-            style={{ minWidth: '200px', fontSize: '0.92rem' }}
+            style={{ minWidth: '220px', fontSize: '0.96rem', padding: '14px 28px' }}
           >
             {isSubmitting ? (
-              <span className="animate-pulse">Confirming…</span>
+              <span className="animate-pulse">Locking Slot & Confirming…</span>
             ) : (
-              <><Zap size={17} fill="#fff" /> Confirm Booking <ArrowRight size={15} /></>
+              <><Zap size={18} fill="#fff" /> Complete Booking <ArrowRight size={16} /></>
             )}
           </button>
         </div>

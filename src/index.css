@@ -436,7 +436,133 @@ label.field-label {
 
 .animate-pulse { animation: pulseSlow 2.2s infinite ease-in-out; }
 
+/* ─── Modern Visual Utilities ───────────────────────────────────────────── */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--text-main) 0%, var(--brand-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow-card {
+  position: relative;
+  overflow: hidden;
+}
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.glow-card:hover::before {
+  opacity: 1;
+}
+
+.category-pill {
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.category-pill:hover {
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+.category-pill.active {
+  background: var(--brand-light);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  box-shadow: 0 0 14px var(--brand-light);
+}
+
+/* Step progress bar */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.step-item.active {
+  color: var(--brand-primary);
+}
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.step-item.active .step-number {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+  box-shadow: 0 0 10px var(--brand-light);
+}
+.step-item.completed .step-number {
+  background: var(--brand-light);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
 /* ─── Porcelain (light) theme overrides ──────────────────────────────────── */
-[data-theme="porcelain"] .input-field { background: #F1F4F9; }
-[data-theme="porcelain"] .demo-banner { background: rgba(240,244,250,0.98); }
-[data-theme="porcelain"] .card { box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+[data-theme="porcelain"] {
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 36px rgba(0,0,0,0.08);
+}
+[data-theme="porcelain"] .input-field { background: #FFFFFF; border-color: #CBD5E1; }
+[data-theme="porcelain"] .card { box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+[data-theme="porcelain"] .glass-card { background: rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+[data-theme="porcelain"] .btn-secondary { background: #FFFFFF; border-color: #CBD5E1; color: #1E293B; }
+[data-theme="porcelain"] .btn-secondary:hover { background: #F1F5F9; }
+

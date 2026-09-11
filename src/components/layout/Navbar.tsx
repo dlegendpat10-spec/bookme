@@ -65,8 +65,8 @@ export const Navbar: React.FC = () => {
         </Link>
 
         {/* Nav links */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-          {navLink('/business/brain-teaser', 'Book Appointment')}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {navLink('/business/luxe-grooming', 'Book Service')}
           {isAdmin && (
             <>
               {navLink('/admin/dashboard', 'Dashboard')}
@@ -92,22 +92,26 @@ export const Navbar: React.FC = () => {
           <button
             onClick={() => { setShowThemePicker(p => !p); setShowUserMenu(false); }}
             className="btn btn-ghost"
-            style={{ padding: '6px 10px', minHeight: '36px', gap: '6px' }}
+            style={{ padding: '6px 12px', minHeight: '36px', gap: '6px', fontSize: '0.84rem' }}
             title="Switch Theme"
           >
-            <Palette size={16} />
+            <Palette size={16} color="var(--brand-primary)" />
+            <span style={{ display: 'inline-block', fontWeight: 600, textTransform: 'capitalize' }}>
+              {theme}
+            </span>
             <ChevronDown size={13} style={{ opacity: 0.6 }} />
           </button>
           {showThemePicker && (
             <div style={{
               position: 'absolute', right: 0, top: 'calc(100% + 8px)',
               background: 'var(--bg-card)', border: '1px solid var(--border-strong)',
-              borderRadius: 'var(--radius-lg)', padding: '16px', zIndex: 1200,
-              minWidth: '200px', boxShadow: 'var(--shadow-lg)',
+              borderRadius: 'var(--radius-lg)', padding: '14px', zIndex: 1200,
+              minWidth: '210px', boxShadow: 'var(--shadow-lg)',
+              backdropFilter: 'blur(16px)',
               animation: 'slideUp 0.18s ease-out',
             }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
-                Choose Theme
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Palette size={13} /> Active Color Theme
               </div>
               {themes.map(t => (
                 <button
@@ -119,16 +123,17 @@ export const Navbar: React.FC = () => {
                     border: `1px solid ${theme === t.id ? 'var(--brand-primary)' : 'transparent'}`,
                     color: theme === t.id ? 'var(--brand-primary)' : 'var(--text-main)',
                     borderRadius: '8px', padding: '8px 10px', cursor: 'pointer',
-                    fontSize: '0.88rem', fontWeight: 600, transition: 'all 0.15s',
+                    fontSize: '0.86rem', fontWeight: 600, transition: 'all 0.15s',
                     marginBottom: '4px',
                   }}
                 >
                   <span style={{
                     width: '18px', height: '18px', borderRadius: '50%',
                     background: t.preview, border: '2px solid var(--border-strong)', flexShrink: 0,
+                    boxShadow: theme === t.id ? '0 0 8px ' + t.preview : 'none',
                   }} />
                   {t.label}
-                  {theme === t.id && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                  {theme === t.id && <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800 }}>✓</span>}
                 </button>
               ))}
             </div>

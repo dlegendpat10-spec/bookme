@@ -4,7 +4,7 @@ export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' 
 
 export type PaymentStatus = 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 
-export type ThemeMode = 'midnight' | 'porcelain' | 'emerald' | 'violet' | 'sunset';
+export type ThemeMode = 'midnight' | 'porcelain' | 'emerald' | 'violet' | 'sunset' | 'oceanic';
 
 export interface User {
   id: string;
