@@ -45,6 +45,9 @@ export interface Service {
   bookingCount: number;
   imageUrl?: string;
   badge?: string; // e.g. "Popular", "20% OFF", "VIP"
+  businessName?: string;
+  businessSlug?: string;
+  businessAddress?: string;
 }
 
 export interface TokenizedCard {

@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { ServiceBooking, BookingStatus } from '../../types';
-import { Search, Filter, Plus, Calendar, Clock, Eye, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { Search, Filter, Plus, Calendar, Clock, Eye, CheckCircle2, XCircle, RefreshCw, Mail, Send, Check } from 'lucide-react';
 
 export const BookingsList: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedBooking, setSelectedBooking] = useState<ServiceBooking | null>(null);
+
+  // Email Notification & Client Response State
+  const [emailSuccessMsg, setEmailSuccessMsg] = useState<string | null>(null);
+  const [replyModalBooking, setReplyModalBooking] = useState<ServiceBooking | null>(null);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Manual Booking Modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -30,13 +38,35 @@ export const BookingsList: React.FC = () => {
     if (services.length > 0 && !manualServiceId) {
       setManualServiceId(services[0].id);
     }
-  }, [business]);
+  }, [business?.id]);
 
   const handleStatusChange = (id: string, newStatus: BookingStatus) => {
     mockStorage.updateBookingStatus(id, newStatus);
     refresh();
+    const target = bookings.find(b => b.id === id);
     if (selectedBooking && selectedBooking.id === id) {
       setSelectedBooking({ ...selectedBooking, bookingStatus: newStatus });
+    }
+    setEmailSuccessMsg(`Booking #${target?.bookingReference || id} updated to ${newStatus}. Status change emails were sent to client (${target?.customerEmail || 'client'}) and business admin.`);
+    setTimeout(() => setEmailSuccessMsg(null), 5000);
+  };
+
+  const handleSendEmailResponse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyModalBooking || !replyMessage.trim()) return;
+
+    setIsSendingEmail(true);
+    try {
+      mockStorage.sendCustomerEmailMessage(replyModalBooking.id, replyMessage.trim());
+
+      setEmailSuccessMsg(`Email response sent to client (${replyModalBooking.customerEmail}) with an audit copy sent to admin!`);
+      setTimeout(() => setEmailSuccessMsg(null), 5000);
+      setReplyMessage('');
+      setReplyModalBooking(null);
+    } catch (err: any) {
+      alert('Failed to send email: ' + err.message);
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -95,6 +125,23 @@ export const BookingsList: React.FC = () => {
           <Plus size={16} /> + New Walk-in Booking
         </button>
       </div>
+
+      {emailSuccessMsg && (
+        <div style={{
+          background: 'rgba(16, 185, 129, 0.15)',
+          border: '1px solid #10B981',
+          color: '#34D399',
+          padding: '12px 18px',
+          borderRadius: '10px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '0.9rem'
+        }}>
+          <Check size={18} /> {emailSuccessMsg}
+        </div>
+      )}
 
       {/* Filter & Search Toolbar */}
       <div className="card" style={{ padding: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -186,13 +233,23 @@ export const BookingsList: React.FC = () => {
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 10px', fontSize: '0.78rem', minHeight: '30px' }}
-                      onClick={() => setSelectedBooking(b)}
-                    >
-                      <Eye size={14} /> View
-                    </button>
+                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.78rem', minHeight: '30px' }}
+                        title="Send email message to client"
+                        onClick={() => setReplyModalBooking(b)}
+                      >
+                        <Mail size={14} color="#60A5FA" /> Email
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.78rem', minHeight: '30px' }}
+                        onClick={() => setSelectedBooking(b)}
+                      >
+                        <Eye size={14} /> View
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -237,23 +294,88 @@ export const BookingsList: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Status Modifiers */}
-            <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '18px' }}>
+            {/* Quick Status Modifiers & Direct Email Communication */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '18px' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  className="btn btn-primary"
+                  style={{ flex: 1, fontSize: '0.85rem' }}
+                  onClick={() => handleStatusChange(selectedBooking.id, 'COMPLETED')}
+                >
+                  <CheckCircle2 size={16} /> Mark Completed
+                </button>
+                <button
+                  className="btn btn-destructive"
+                  style={{ flex: 1, fontSize: '0.85rem' }}
+                  onClick={() => handleStatusChange(selectedBooking.id, 'CANCELLED')}
+                >
+                  <XCircle size={16} /> Cancel Booking
+                </button>
+              </div>
+
               <button
-                className="btn btn-primary"
-                style={{ flex: 1, fontSize: '0.85rem' }}
-                onClick={() => handleStatusChange(selectedBooking.id, 'COMPLETED')}
+                className="btn btn-secondary"
+                style={{ width: '100%', fontSize: '0.85rem', marginTop: '4px' }}
+                onClick={() => {
+                  setReplyModalBooking(selectedBooking);
+                  setSelectedBooking(null);
+                }}
               >
-                <CheckCircle2 size={16} /> Mark Completed
-              </button>
-              <button
-                className="btn btn-destructive"
-                style={{ flex: 1, fontSize: '0.85rem' }}
-                onClick={() => handleStatusChange(selectedBooking.id, 'CANCELLED')}
-              >
-                <XCircle size={16} /> Cancel Booking
+                <Mail size={16} color="#60A5FA" /> Send Email Response to Client
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Compose & Send Email to Client Modal */}
+      {replyModalBooking && (
+        <div className="modal-overlay" onClick={() => setReplyModalBooking(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <span className="badge" style={{ background: 'rgba(96, 165, 250, 0.15)', color: '#60A5FA' }}>Direct Client Email</span>
+                <h3 style={{ fontSize: '1.3rem', marginTop: '4px' }}>Email {replyModalBooking.customerName}</h3>
+              </div>
+              <button className="btn btn-ghost" onClick={() => setReplyModalBooking(null)}>✕</button>
+            </div>
+
+            <div style={{ background: '#0B0F19', padding: '12px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem' }}>
+              <div style={{ color: 'var(--text-muted)' }}>Client Email Recipient:</div>
+              <div style={{ fontWeight: 700, color: '#F8FAFC' }}>{replyModalBooking.customerEmail}</div>
+              <div style={{ color: 'var(--text-faint)', fontSize: '0.78rem', marginTop: '4px' }}>
+                Booking Ref: #{replyModalBooking.bookingReference} • {replyModalBooking.serviceName}
+              </div>
+              <div style={{ color: '#10B981', fontSize: '0.76rem', marginTop: '6px', fontWeight: 600 }}>
+                ✓ An audit copy of this message will also be delivered to the admin inbox
+              </div>
+            </div>
+
+            <form onSubmit={handleSendEmailResponse}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+                  Email Message / Response
+                </label>
+                <textarea
+                  required
+                  rows={5}
+                  className="input-field"
+                  placeholder="Type your message, appointment instructions, or response for the client..."
+                  value={replyMessage}
+                  onChange={e => setReplyMessage(e.target.value)}
+                  style={{ width: '100%', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setReplyModalBooking(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={isSendingEmail || !replyMessage.trim()}>
+                  <Send size={15} /> {isSendingEmail ? 'Sending Email…' : 'Send Email to Client'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

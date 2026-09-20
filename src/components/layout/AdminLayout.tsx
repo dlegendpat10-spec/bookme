@@ -11,7 +11,9 @@ import {
 export const AdminLayout: React.FC = () => {
   const location = useLocation();
   const { currentUser } = useAuth();
-  const business = mockStorage.getBusinesses()[0]; // Default to Luxe Grooming
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
+  const activeName = currentUser?.businessName || business?.name || 'Your Business';
+  const activeSlug = currentUser?.businessSlug || business?.slug || '';
 
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
@@ -27,24 +29,24 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)' }}>
-      {/* Admin Sidebar */}
+    <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
+      {/* ── Left Sidebar ─────────────────────────────────────────────────── */}
       <aside style={{
-        width: '220px',
-        background: 'var(--bg-card)',
-        borderRight: '1px solid var(--border-subtle)',
-        padding: '20px 14px',
+        width: '240px',
+        backgroundColor: '#0F172A',
+        borderRight: '1px solid #1E293B',
+        padding: '24px 16px',
+        flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        flexShrink: 0
+        justifyContent: 'space-between'
       }}>
         <div>
-          {/* Business Tenant Header Badge */}
+          {/* Business switcher badge */}
           <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '10px',
             padding: '12px',
             marginBottom: '24px'
           }}>
@@ -52,23 +54,40 @@ export const AdminLayout: React.FC = () => {
               Active Workspace
             </div>
             <div style={{ fontWeight: 700, fontSize: '0.95rem', marginTop: '2px', color: '#F8FAFC' }}>
-              {business?.name || 'Luxe Grooming Lounge'}
+              {activeName}
             </div>
-            <Link
-              to={`/business/${business?.slug || 'luxe-grooming'}`}
-              target="_blank"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.75rem',
-                color: '#10B981',
-                marginTop: '6px',
-                fontWeight: 600
-              }}
-            >
-              Public Page <ExternalLink size={12} />
-            </Link>
+            {activeSlug ? (
+              <Link
+                to={`/business/${activeSlug}`}
+                target="_blank"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.75rem',
+                  color: '#10B981',
+                  marginTop: '6px',
+                  fontWeight: 600
+                }}
+              >
+                Public Page <ExternalLink size={12} />
+              </Link>
+            ) : (
+              <Link
+                to="/admin/business"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.75rem',
+                  color: '#94A3B8',
+                  marginTop: '6px',
+                  fontWeight: 600
+                }}
+              >
+                Set Up Profile →
+              </Link>
+            )}
           </div>
 
           {/* Navigation Links */}

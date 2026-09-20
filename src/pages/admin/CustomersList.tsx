@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { Customer } from '../../types';
 import { Search, User, Phone, Mail, DollarSign, Calendar, MessageSquare } from 'lucide-react';
 
 export const CustomersList: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCust, setSelectedCust] = useState<Customer | null>(null);
@@ -13,7 +15,7 @@ export const CustomersList: React.FC = () => {
     if (business) {
       setCustomers(mockStorage.getCustomers(business.id));
     }
-  }, [business]);
+  }, [business?.id]);
 
   const filtered = customers.filter(c => 
     c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||

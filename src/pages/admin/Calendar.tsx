@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { ServiceBooking } from '../../types';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Plus, User } from 'lucide-react';
 
 export const AdminCalendar: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
   
@@ -15,7 +17,7 @@ export const AdminCalendar: React.FC = () => {
     if (business) {
       setBookings(mockStorage.getBookings(business.id));
     }
-  }, [business]);
+  }, [business?.id]);
 
   // Generate 7 days for week view
   const startOfWeek = new Date(currentDate);

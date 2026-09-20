@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { mockStorage } from '../services/mockStorage';
+import { Service } from '../types';
 import {
-  Zap, ShieldCheck, MessageSquare, ArrowRight, Clock, CheckCircle2, Building2
+  Zap, ShieldCheck, MessageSquare, ArrowRight, Clock, CheckCircle2, Building2, Compass
 } from 'lucide-react';
 
 const FEATURES = [
@@ -26,24 +27,42 @@ const FEATURES = [
 const TESTIMONIALS = [
   {
     name: 'Marcus Vance',
-    role: 'Luxe Grooming Studio',
+    role: 'Salon & Studio Director',
     quote: 'Bookmi cut our scheduling overhead completely. Our clients appreciate the clean, instant checkout.',
   },
   {
     name: 'Elena Rostova',
-    role: 'Serenity Spa & Wellness',
-    quote: 'The minimalist booking experience aligns perfectly with our luxury brand standards.',
+    role: 'Wellness & Spa Owner',
+    quote: 'The minimalist booking experience aligns perfectly with our brand standards.',
   },
   {
     name: 'Dr. Sarah Jenkins',
-    role: 'Apex Advisory',
+    role: 'Managing Consultant',
     quote: 'Managing client meetings across multiple advisors has never been easier or more reliable.',
   },
 ];
 
 export const LandingPage: React.FC = () => {
-  const services = mockStorage.getServices();
+  const [services, setServices] = useState<Service[]>(mockStorage.getServices());
+  const [loading, setLoading] = useState(false);
   const defaultBusiness = mockStorage.getBusinesses()[0];
+
+  useEffect(() => {
+    const loadServices = async () => {
+      setLoading(true);
+      try {
+        const fetched = await mockStorage.fetchRemoteServices();
+        if (fetched && fetched.length > 0) {
+          setServices(fetched);
+        }
+      } catch {
+        // Fallback to local
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
 
   return (
     <div className="page-shell" style={{ paddingTop: '20px' }}>
@@ -90,8 +109,8 @@ export const LandingPage: React.FC = () => {
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-          <Link to={`/business/${defaultBusiness?.slug || 'luxe-grooming'}`} className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
-            Select Service & Book <ArrowRight size={16} />
+          <Link to="/services" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
+            <Compass size={18} /> Explore Services
           </Link>
           <Link to="/admin/onboarding" className="btn btn-secondary" style={{ padding: '12px 24px', fontSize: '0.95rem' }}>
             <Building2 size={16} /> Register Business
@@ -101,75 +120,125 @@ export const LandingPage: React.FC = () => {
 
       {/* ── Direct Available Services ─────────────────────────────────────── */}
       <section style={{ marginBottom: '100px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px' }}>
-            Available Services
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
-            Select a service below to view time slots and confirm your appointment.
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '6px' }}>
+              Available Services
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem' }}>
+              Select a service below to view time slots and confirm your appointment.
+            </p>
+          </div>
+          {services.length > 0 && (
+            <Link to="/services" style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-primary)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              View All Services <ArrowRight size={15} />
+            </Link>
+          )}
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px',
-        }}>
-          {services.map(svc => (
-            <div
-              key={svc.id}
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '28px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-              className="card-hover"
-            >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{svc.name}</h3>
-                  <span style={{
-                    fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary)',
-                    background: 'var(--brand-light)', padding: '4px 10px', borderRadius: '8px',
-                  }}>
-                    ₦{svc.price.toLocaleString()}
-                  </span>
-                </div>
-
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '20px' }}>
-                  {svc.description}
-                </p>
-              </div>
-
-              <div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '14px',
-                  color: 'var(--text-faint)', fontSize: '0.82rem', marginBottom: '20px',
-                  borderTop: '1px solid var(--border-subtle)', paddingTop: '14px',
-                }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Clock size={14} /> {svc.durationMinutes} mins
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <CheckCircle2 size={14} color="var(--brand-primary)" /> Instant Confirmation
-                  </span>
-                </div>
-
-                <Link
-                  to={`/business/${defaultBusiness?.slug || 'luxe-grooming'}`}
-                  className="btn btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '0.9rem' }}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+            <p>Loading available services...</p>
+          </div>
+        ) : services.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '48px 24px',
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-subtle)',
+          }}>
+            <Building2 size={36} color="var(--text-faint)" style={{ marginBottom: '12px' }} />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '6px' }}>No public services registered yet</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', maxWidth: '400px', margin: '0 auto 20px' }}>
+              Are you a business owner? Add your services and start accepting bookings today.
+            </p>
+            <Link to="/admin/onboarding" className="btn btn-primary" style={{ padding: '10px 20px' }}>
+              Register Your Business
+            </Link>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px',
+          }}>
+            {services.slice(0, 6).map(svc => {
+              const targetSlug = svc.businessSlug || defaultBusiness?.slug || 'business';
+              return (
+                <div
+                  key={svc.id}
+                  style={{
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '26px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  className="card-hover"
                 >
-                  Book Service <ArrowRight size={15} />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div>
+                    {svc.businessName && (
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        color: 'var(--brand-primary)',
+                        background: 'var(--brand-light)',
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        marginBottom: '12px',
+                      }}>
+                        <Building2 size={13} /> {svc.businessName}
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{svc.name}</h3>
+                      <span style={{
+                        fontSize: '1rem', fontWeight: 800, color: 'var(--brand-primary)',
+                        background: 'var(--brand-light)', padding: '4px 10px', borderRadius: '8px',
+                      }}>
+                        ₦{svc.price.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '20px' }}>
+                      {svc.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '14px',
+                      color: 'var(--text-faint)', fontSize: '0.82rem', marginBottom: '20px',
+                      borderTop: '1px solid var(--border-subtle)', paddingTop: '14px',
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Clock size={14} /> {svc.durationMinutes} mins
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <CheckCircle2 size={14} color="var(--brand-primary)" /> Instant Confirmation
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/business/${targetSlug}?service=${svc.id}`}
+                      className="btn btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '0.9rem' }}
+                    >
+                      Book Service <ArrowRight size={15} />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* ── Feature Highlights ────────────────────────────────────────────── */}

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { ExternalLink, ChevronDown, Palette, LogOut, User, LogIn } from 'lucide-react';
+import { mockStorage } from '../../services/mockStorage';
+import { NotificationViewerModal } from '../shared/NotificationViewerModal';
+import { ExternalLink, ChevronDown, Palette, LogOut, User, LogIn, Bell } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { currentUser, role, signOut, isAuthenticated } = useAuth();
@@ -10,10 +12,22 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      setNotifCount(mockStorage.getNotifications().length);
+    };
+    updateCount();
+    const interval = setInterval(updateCount, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isAdmin = role === 'BUSINESS_ADMIN';
   const activeColor = 'var(--brand-primary)';
   const isActive = (path: string) => location.pathname.startsWith(path);
+  const activeSlug = currentUser?.businessSlug || mockStorage.getBusinesses()[0]?.slug;
 
   const navLink = (to: string, label: string) => (
     <Link
@@ -25,7 +39,6 @@ export const Navbar: React.FC = () => {
         padding: '6px 12px',
         borderRadius: '8px',
         transition: 'color 0.15s, background 0.15s',
-        background: isActive(to) ? 'var(--brand-light)' : 'transparent',
       }}
     >
       {label}
@@ -34,15 +47,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <header style={{
-      background: 'var(--navbar-bg)',
-      backdropFilter: 'blur(14px)',
-      WebkitBackdropFilter: 'blur(14px)',
       borderBottom: '1px solid var(--border-subtle)',
+      backgroundColor: 'var(--bg-glass)',
+      backdropFilter: 'blur(16px)',
       position: 'sticky',
       top: 0,
-      zIndex: 900,
-      padding: '0 28px',
-      height: '60px',
+      zIndex: 100,
+      padding: '0 24px',
+      height: '64px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -52,7 +64,7 @@ export const Navbar: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '9px', flexShrink: 0 }}>
           <div style={{
-            width: '33px', height: '33px', borderRadius: '9px',
+            width: '33px', height: '33px', borderRadius: '99px',
             background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: 900, fontSize: '1.1rem', color: '#fff', fontFamily: 'Outfit, sans-serif',
@@ -64,7 +76,8 @@ export const Navbar: React.FC = () => {
 
         {/* Nav links */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {navLink(`/business/${currentUser?.businessSlug || 'luxe-grooming'}`, 'Book Service')}
+          {navLink('/services', 'Explore Services')}
+          {activeSlug ? navLink(`/business/${activeSlug}`, 'My Booking Page') : navLink('/admin/onboarding', 'Register Business')}
           {isAuthenticated && (
             <>
               {navLink('/admin/dashboard', 'Dashboard')}
@@ -78,7 +91,28 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* ── Right Controls & Auth Buttons ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        {/* Notification Bell */}
+        <button
+          onClick={() => { setShowNotifModal(true); setShowThemePicker(false); setShowUserMenu(false); }}
+          className="btn btn-ghost"
+          style={{ position: 'relative', padding: '8px', minHeight: '36px', borderRadius: '8px' }}
+          title="Notification Dispatch Log"
+        >
+          <Bell size={18} color="var(--text-main)" />
+          {notifCount > 0 && (
+            <span style={{
+              position: 'absolute', top: '4px', right: '4px',
+              background: '#10B981', color: '#fff', fontSize: '0.68rem', fontWeight: 800,
+              minWidth: '16px', height: '16px', borderRadius: '99px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
+              lineHeight: 1
+            }}>
+              {notifCount > 9 ? '9+' : notifCount}
+            </span>
+          )}
+        </button>
+
         {/* Theme Picker */}
         <div style={{ position: 'relative' }}>
           <button
@@ -208,6 +242,11 @@ export const Navbar: React.FC = () => {
           style={{ position: 'fixed', inset: 0, zIndex: 1100 }}
           onClick={() => { setShowThemePicker(false); setShowUserMenu(false); }}
         />
+      )}
+
+      {/* Notification Dispatch Viewer Modal */}
+      {showNotifModal && (
+        <NotificationViewerModal onClose={() => setShowNotifModal(false)} />
       )}
     </header>
   );

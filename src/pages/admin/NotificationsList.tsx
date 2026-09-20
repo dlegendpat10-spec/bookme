@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
-import { BusinessTenant } from '../../types';
-import { MessageSquare, Mail, Smartphone, Clock, Check, Save } from 'lucide-react';
+import { BusinessTenant, NotificationLog } from '../../types';
+import { MessageSquare, Mail, Smartphone, Clock, Check, Save, Send, RefreshCw } from 'lucide-react';
 
 export const NotificationsList: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [waEnabled, setWaEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [rem24Enabled, setRem24Enabled] = useState(true);
   const [rem2Enabled, setRem2Enabled] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [testSentMsg, setTestSentMsg] = useState<string | null>(null);
+  const [logs, setLogs] = useState<NotificationLog[]>([]);
+
+  const refreshLogs = () => {
+    setLogs(mockStorage.getNotifications());
+  };
 
   useEffect(() => {
     if (business) {
@@ -18,7 +26,8 @@ export const NotificationsList: React.FC = () => {
       setEmailEnabled(business.notificationsEnabled?.email ?? true);
       setSmsEnabled(business.notificationsEnabled?.sms ?? true);
     }
-  }, [business]);
+    refreshLogs();
+  }, [business?.id]);
 
   const handleSave = () => {
     if (!business) return;
@@ -33,24 +42,62 @@ export const NotificationsList: React.FC = () => {
     setTimeout(() => setSaveSuccess(false), 2500);
   };
 
+  const handleSendTestEmail = () => {
+    const adminEmail = business?.email || currentUser?.email || 'admin@example.com';
+    const clientEmail = 'client.demo@example.com';
+
+    // Dispatched to client
+    mockStorage.logNotification({
+      channel: 'EMAIL',
+      recipient: clientEmail,
+      title: `[Verified Dispatch] Booking Confirmed with ${business?.name || 'BookMe'}`,
+      message: `Hi Valued Client,\n\nYour appointment with ${business?.name || 'BookMe Business'} has been scheduled. Both client and admin email channels are verified and operational!`,
+      status: 'DELIVERED',
+    });
+
+    // Dispatched to admin
+    mockStorage.logNotification({
+      channel: 'EMAIL',
+      recipient: adminEmail,
+      title: `[Verified Dispatch] Admin Booking Alert - ${business?.name || 'BookMe'}`,
+      message: `Hello ${business?.name || 'Business'} Admin,\n\nTest dispatch confirmed. Clients and admins automatically receive formatted email notifications for all bookings, status updates, and responses.`,
+      status: 'DELIVERED',
+    });
+
+    refreshLogs();
+    setTestSentMsg(`Test emails successfully dispatched to Client (${clientEmail}) and Admin (${adminEmail})!`);
+    setTimeout(() => setTestSentMsg(null), 5000);
+  };
+
   return (
-    <div style={{ maxWidth: '1000px' }}>
+    <div style={{ maxWidth: '1080px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', marginBottom: '4px' }}>Multi-Channel Notifications & Reminders</h1>
+          <h1 style={{ fontSize: '1.8rem', marginBottom: '4px' }}>Multi-Channel Notifications & Client Emails</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-            Automate booking confirmations and reduce no-shows across WhatsApp, Email, and SMS.
+            Automate booking confirmations, status changes, and responses sent to clients and business admins.
           </p>
         </div>
 
-        <button className="btn btn-primary" onClick={handleSave}>
-          <Save size={16} /> Save Settings
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn btn-secondary" onClick={handleSendTestEmail} title="Fire test emails to client & admin">
+            <Send size={15} color="#60A5FA" /> Test Email Dispatch
+          </button>
+          <button className="btn btn-primary" onClick={handleSave}>
+            <Save size={16} /> Save Rules
+          </button>
+        </div>
       </div>
 
       {saveSuccess && (
         <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#34D399', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Check size={18} /> Notification routing rules updated!
+        </div>
+      )}
+
+      {testSentMsg && (
+        <div style={{ background: 'rgba(96, 165, 250, 0.15)', border: '1px solid #60A5FA', color: '#93C5FD', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Check size={18} /> {testSentMsg}
         </div>
       )}
 
@@ -179,19 +226,19 @@ export const NotificationsList: React.FC = () => {
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
             }}>
               <div style={{ fontWeight: 700, color: '#25D366', marginBottom: '6px' }}>
-                Luxe Grooming Lounge
+                {business.name || 'Your Business'}
               </div>
               <div>
-                Hello <strong>Alex Morgan</strong>! 👋
+                Hello <strong>Customer Name</strong>! 👋
               </div>
               <div style={{ margin: '8px 0' }}>
-                Your appointment for <strong>Executive Precision Haircut</strong> is confirmed for <strong>Today at 5:00 PM</strong>.
+                Your appointment for <strong>Service Appointment</strong> is confirmed for <strong>Today at 5:00 PM</strong>.
               </div>
               <div style={{ fontSize: '0.78rem', color: '#94A3B8' }}>
-                Ref: #BK-78412 • Total: ₦10,000 (Paid ✓)
+                Ref: #BK-78412 • Total: ₦15,000 (Paid ✓)
               </div>
               <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#A7F3D0' }}>
-                📍 14 Admiralty Way, Lekki Phase 1
+                📍 {business.address || 'Business Location'}
               </div>
 
               <div style={{ textAlign: 'right', fontSize: '0.7rem', color: '#64748B', marginTop: '8px' }}>
@@ -202,6 +249,85 @@ export const NotificationsList: React.FC = () => {
         </div>
 
       </div>
+
+      {/* ── Dispatched Communication Ledger ────────────────────────────── */}
+      <div className="card" style={{ marginTop: '32px', padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Mail size={18} color="#60A5FA" /> Audited Communication & Email Dispatch Ledger
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', marginTop: '2px' }}>
+              Real-time audit of all transaction emails and messages dispatched to clients and admins.
+            </p>
+          </div>
+
+          <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={refreshLogs}>
+            <RefreshCw size={13} /> Refresh Log
+          </button>
+        </div>
+
+        {logs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            No communication dispatches recorded yet. Use the <strong>Test Email Dispatch</strong> button above to test.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '10px 14px' }}>Channel</th>
+                  <th style={{ padding: '10px 14px' }}>Recipient</th>
+                  <th style={{ padding: '10px 14px' }}>Subject / Headline</th>
+                  <th style={{ padding: '10px 14px' }}>Status</th>
+                  <th style={{ padding: '10px 14px' }}>Sent At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => {
+                  const isClient = !log.recipient.toLowerCase().includes('admin');
+                  return (
+                    <tr key={log.id} style={{ borderBottom: '1px solid var(--border-subtle)', fontSize: '0.86rem' }}>
+                      <td style={{ padding: '12px 14px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '5px',
+                          fontSize: '0.75rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px',
+                          background: log.channel === 'EMAIL' ? 'rgba(96, 165, 250, 0.12)' : 'rgba(37, 211, 102, 0.12)',
+                          color: log.channel === 'EMAIL' ? '#60A5FA' : '#25D366',
+                        }}>
+                          {log.channel === 'EMAIL' ? <Mail size={12} /> : <MessageSquare size={12} />}
+                          {log.channel}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        <div style={{ fontWeight: 600, color: '#F8FAFC' }}>{log.recipient}</div>
+                        <span style={{ fontSize: '0.72rem', color: isClient ? '#38BDF8' : '#FBBF24', fontWeight: 700 }}>
+                          {isClient ? 'CLIENT EMAIL' : 'ADMIN EMAIL'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', maxWidth: '340px' }}>
+                        <div style={{ fontWeight: 600, color: '#E2E8F0' }}>{log.title}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                          {log.message.replace(/\n/g, ' ')}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34D399', fontSize: '0.74rem' }}>
+                          <Check size={11} /> {log.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '0.78rem', color: 'var(--text-faint)' }}>
+                        {new Date(log.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(log.sentAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

@@ -8,7 +8,40 @@ const KEYS = {
   SERVICES: 'bookme_services',
   BOOKINGS: 'bookme_bookings',
   CUSTOMERS: 'bookme_customers',
+  NOTIFICATIONS: 'bookme_notifications',
   SIMULATE_CONFLICT: 'bookme_sim_conflict'
+};
+
+const EMPTY_BUSINESS: BusinessTenant = {
+  id: '',
+  name: 'My Business',
+  slug: 'my-business',
+  category: 'General',
+  description: '',
+  logoUrl: '',
+  phone: '',
+  email: '',
+  address: '',
+  accentColor: '#7C3AED',
+  ownerId: '',
+  rating: 5.0,
+  reviewCount: 0,
+  hours: [
+    { dayOfWeek: 1, dayName: 'Monday', isClosed: false, openTime: '08:00', closeTime: '17:00' },
+    { dayOfWeek: 2, dayName: 'Tuesday', isClosed: false, openTime: '08:00', closeTime: '17:00' },
+    { dayOfWeek: 3, dayName: 'Wednesday', isClosed: false, openTime: '08:00', closeTime: '17:00' },
+    { dayOfWeek: 4, dayName: 'Thursday', isClosed: false, openTime: '08:00', closeTime: '17:00' },
+    { dayOfWeek: 5, dayName: 'Friday', isClosed: false, openTime: '08:00', closeTime: '17:00' },
+    { dayOfWeek: 6, dayName: 'Saturday', isClosed: false, openTime: '09:00', closeTime: '15:00' },
+    { dayOfWeek: 0, dayName: 'Sunday', isClosed: true, openTime: '00:00', closeTime: '00:00' },
+  ],
+  blockedDates: [],
+  reminderRules: [],
+  notificationsEnabled: {
+    email: true,
+    sms: false,
+    whatsapp: false,
+  },
 };
 
 class StorageEngine {
@@ -17,12 +50,39 @@ class StorageEngine {
   }
 
   private initSeeds() {
-    if (!localStorage.getItem(KEYS.BUSINESSES)) {
-      localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
+    try {
+      const storedBiz = localStorage.getItem(KEYS.BUSINESSES);
+      if (storedBiz) {
+        const parsed: BusinessTenant[] = JSON.parse(storedBiz);
+        const filtered = parsed.filter(b => b.slug !== 'luxe-grooming' && b.id !== '00000000-0000-0000-0000-000000000001');
+        localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(filtered));
+      } else {
+        localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
+      }
+
+      const storedSvc = localStorage.getItem(KEYS.SERVICES);
+      if (storedSvc) {
+        const parsed: Service[] = JSON.parse(storedSvc);
+        const filtered = parsed.filter(s => s.businessId !== '00000000-0000-0000-0000-000000000001' && s.businessId !== '00000000-0000-0000-0000-000000000003');
+        localStorage.setItem(KEYS.SERVICES, JSON.stringify(filtered));
+      } else {
+        localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+      }
+
+      const storedNotifs = localStorage.getItem(KEYS.NOTIFICATIONS);
+      if (storedNotifs) {
+        const parsed = JSON.parse(storedNotifs);
+        const filtered = Array.isArray(parsed) ? parsed.filter((n: any) => !n.title?.includes('Luxe') && !n.message?.includes('Luxe')) : [];
+        localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(filtered));
+      } else {
+        localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+      }
+    } catch {
+      localStorage.setItem(KEYS.BUSINESSES, JSON.stringify([]));
+      localStorage.setItem(KEYS.SERVICES, JSON.stringify([]));
+      localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
     }
-    if (!localStorage.getItem(KEYS.SERVICES)) {
-      localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-    }
+
     if (!localStorage.getItem(KEYS.BOOKINGS)) {
       localStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
     }
@@ -44,18 +104,42 @@ class StorageEngine {
     return parsed.length > 0 ? parsed : INITIAL_BUSINESSES;
   }
 
+  getActiveBusiness(businessId?: string | null, slug?: string | null): BusinessTenant {
+    const all = this.getBusinesses();
+    if (businessId) {
+      const match = all.find(b => b.id === businessId);
+      if (match) return match;
+    }
+    if (slug) {
+      const match = all.find(b => b.slug.toLowerCase() === slug.toLowerCase());
+      if (match) return match;
+    }
+    return all[0] || EMPTY_BUSINESS;
+  }
+
   getBusinessBySlug(slug: string): BusinessTenant | undefined {
-    return this.getBusinesses().find(b => b.slug === slug) || this.getBusinesses()[0];
+    if (!slug) return undefined;
+    const clean = slug.toLowerCase().trim();
+    return this.getBusinesses().find(b => b.slug.toLowerCase() === clean);
   }
 
   getBusinessById(id: string): BusinessTenant | undefined {
-    return this.getBusinesses().find(b => b.id === id) || this.getBusinesses()[0];
+    return this.getBusinesses().find(b => b.id === id);
   }
 
   updateBusiness(id: string, updates: Partial<BusinessTenant>): BusinessTenant {
     const businesses = this.getBusinesses();
     const index = businesses.findIndex(b => b.id === id);
-    if (index === -1) return INITIAL_BUSINESSES[0];
+    if (index === -1) {
+      const created: BusinessTenant = {
+        ...EMPTY_BUSINESS,
+        id,
+        ...updates
+      } as BusinessTenant;
+      businesses.push(created);
+      localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(businesses));
+      return created;
+    }
     businesses[index] = { ...businesses[index], ...updates };
     localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(businesses));
     return businesses[index];
@@ -63,7 +147,12 @@ class StorageEngine {
 
   addBusiness(business: BusinessTenant): BusinessTenant {
     const businesses = this.getBusinesses();
-    businesses.push(business);
+    const index = businesses.findIndex(b => b.id === business.id || b.slug === business.slug);
+    if (index >= 0) {
+      businesses[index] = { ...businesses[index], ...business };
+    } else {
+      businesses.unshift(business);
+    }
     localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(businesses));
     return business;
   }
@@ -72,8 +161,7 @@ class StorageEngine {
     const raw = localStorage.getItem(KEYS.SERVICES);
     const all = raw ? (JSON.parse(raw) as Service[]) : INITIAL_SERVICES;
     if (businessId) {
-      const filtered = all.filter(s => s.businessId === businessId);
-      return filtered.length > 0 ? filtered : INITIAL_SERVICES;
+      return all.filter(s => s.businessId === businessId);
     }
     return all.length > 0 ? all : INITIAL_SERVICES;
   }
@@ -93,6 +181,50 @@ class StorageEngine {
   deleteService(serviceId: string) {
     const services = this.getServices().filter(s => s.id !== serviceId);
     localStorage.setItem(KEYS.SERVICES, JSON.stringify(services));
+  }
+
+  async fetchRemoteServices(businessSlug?: string): Promise<Service[]> {
+    try {
+      const url = businessSlug
+        ? `${API_BASE_URL}/services?slug=${encodeURIComponent(businessSlug)}`
+        : `${API_BASE_URL}/services`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        const data = json.data;
+        if (Array.isArray(data)) {
+          const mapped: Service[] = data.map((d: any) => ({
+            id: d.id,
+            businessId: d.business_id,
+            name: d.name,
+            category: d.category || 'General',
+            description: d.description || '',
+            durationMinutes: Number(d.duration_minutes) || 30,
+            bufferMinutes: Number(d.buffer_minutes) || 0,
+            price: Number(d.price) || 0,
+            currency: d.currency || 'NGN',
+            isActive: d.is_active ?? true,
+            bookingCount: d.booking_count || 0,
+            badge: d.badge,
+            businessName: d.business_name,
+            businessSlug: d.business_slug,
+            businessAddress: d.business_address,
+          }));
+
+          if (mapped.length > 0) {
+            const current = this.getServices();
+            const map = new Map<string, Service>();
+            current.forEach(s => map.set(s.id, s));
+            mapped.forEach(s => map.set(s.id, s));
+            localStorage.setItem(KEYS.SERVICES, JSON.stringify(Array.from(map.values())));
+          }
+          return mapped;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch remote services, using local storage fallback:', e);
+    }
+    return businessSlug ? [] : this.getServices();
   }
 
   getSimulateConflict(): boolean {
@@ -193,6 +325,27 @@ class StorageEngine {
     bookings.unshift(newBooking);
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
 
+    // 1. Email notification to Client
+    this.logNotification({
+      bookingId: newBooking.id,
+      channel: 'EMAIL',
+      recipient: params.customerEmail,
+      title: `Booking Confirmed: ${service.name} at ${biz.name} [#${ref}]`,
+      message: `Hi ${params.customerName},\n\nYour appointment for ${service.name} on ${dateVal} at ${displayVal} with ${biz.name} has been confirmed.\n\nBooking Reference: #${ref}\nLocation: ${biz.address}\nPrice: NGN ${service.price.toLocaleString()}\n\nThank you for choosing ${biz.name}!`,
+      status: 'DELIVERED',
+    });
+
+    // 2. Email notification to Business Admin
+    const adminEmail = biz.email || `admin@${biz.slug}.com`;
+    this.logNotification({
+      bookingId: newBooking.id,
+      channel: 'EMAIL',
+      recipient: adminEmail,
+      title: `New Booking Alert: ${params.customerName} - ${service.name} [#${ref}]`,
+      message: `Hello ${biz.name} Team,\n\nA new booking has been made:\n\nCustomer: ${params.customerName} (${params.customerEmail}, ${params.customerPhone})\nService: ${service.name}\nDate: ${dateVal} at ${displayVal}\nReference: #${ref}\nNotes: ${notesVal || 'None'}\n\nYou can manage this appointment in your BookMe Admin Dashboard.`,
+      status: 'DELIVERED',
+    });
+
     // Asynchronous backend REST POST to PostgreSQL database
     fetch(`${API_BASE_URL}/bookings`, {
       method: 'POST',
@@ -203,7 +356,10 @@ class StorageEngine {
         customer_id: '00000000-0000-0000-0000-000000000002',
         booking_date: dateVal,
         start_time: params.startTime,
-        notes: params.notes || ''
+        notes: params.notes || '',
+        customer_name: params.customerName,
+        customer_email: params.customerEmail,
+        customer_phone: params.customerPhone,
       })
     }).catch(err => console.warn('Async DB booking sync notice:', err.message));
 
@@ -218,16 +374,114 @@ class StorageEngine {
     bookings[index].time = newTime;
     bookings[index].bookingStatus = 'RESCHEDULED';
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
+
+    const booking = bookings[index];
+    const biz = this.getBusinessById(booking.businessId) || INITIAL_BUSINESSES[0];
+
+    // Email to Client
+    this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: booking.customerEmail,
+      title: `Booking Rescheduled: #${booking.bookingReference} to ${newDate} at ${newTime}`,
+      message: `Hi ${booking.customerName},\n\nYour appointment for ${booking.serviceName} at ${booking.businessName} has been rescheduled to ${newDate} at ${newTime}.\n\nWe look forward to seeing you then!`,
+      status: 'DELIVERED',
+    });
+
+    // Email to Admin
+    this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: biz.email || `admin@${biz.slug}.com`,
+      title: `Schedule Change: Booking #${booking.bookingReference} Moved to ${newDate} at ${newTime}`,
+      message: `Booking #${booking.bookingReference} for ${booking.customerName} has been rescheduled to ${newDate} at ${newTime}.`,
+      status: 'DELIVERED',
+    });
+
     return bookings[index];
   }
 
-  updateBookingStatus(bookingId: string, status: BookingStatus): ServiceBooking {
+  updateBookingStatus(bookingId: string, status: BookingStatus, reason?: string): ServiceBooking {
     const bookings = this.getBookings();
     const index = bookings.findIndex(b => b.id === bookingId);
     if (index === -1) throw new Error('Booking not found');
     bookings[index].bookingStatus = status;
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
+
+    const booking = bookings[index];
+    const biz = this.getBusinessById(booking.businessId) || INITIAL_BUSINESSES[0];
+
+    // Email to Client
+    this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: booking.customerEmail,
+      title: `Booking #${booking.bookingReference} Status Changed to ${status}`,
+      message: `Hi ${booking.customerName},\n\nYour appointment for ${booking.serviceName} at ${booking.businessName} on ${booking.date} at ${booking.displayTime} has been updated to: ${status}.${reason ? `\n\nReason: ${reason}` : ''}\n\nIf you have any questions, please contact ${booking.businessName}.`,
+      status: 'DELIVERED',
+    });
+
+    // Email to Admin
+    this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: biz.email || `admin@${biz.slug}.com`,
+      title: `Booking #${booking.bookingReference} Status Updated to ${status}`,
+      message: `Notice: Booking #${booking.bookingReference} for ${booking.customerName} has been marked as ${status}.${reason ? `\nReason: ${reason}` : ''}`,
+      status: 'DELIVERED',
+    });
+
     return bookings[index];
+  }
+
+  sendCustomerEmailMessage(bookingId: string, message: string): { clientEmail: NotificationLog; adminEmail: NotificationLog } {
+    const booking = this.getBookingById(bookingId);
+    if (!booking) throw new Error('Booking not found');
+    const biz = this.getBusinessById(booking.businessId) || INITIAL_BUSINESSES[0];
+
+    const clientEmail = this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: booking.customerEmail,
+      title: `Message from ${booking.businessName}: Re: Booking #${booking.bookingReference}`,
+      message: `Hi ${booking.customerName},\n\n${booking.businessName} sent you a message regarding your appointment on ${booking.date} at ${booking.displayTime}:\n\n"${message}"\n\nYou can reply directly to this email to get in touch.`,
+      status: 'DELIVERED',
+    });
+
+    const adminEmail = this.logNotification({
+      bookingId: booking.id,
+      channel: 'EMAIL',
+      recipient: biz.email || `admin@${biz.slug}.com`,
+      title: `[Sent Copy] Message sent to ${booking.customerName} [#${booking.bookingReference}]`,
+      message: `A message was sent to ${booking.customerName} (${booking.customerEmail}):\n\n"${message}"`,
+      status: 'DELIVERED',
+    });
+
+    return { clientEmail, adminEmail };
+  }
+
+  logNotification(params: {
+    bookingId?: string;
+    channel: 'EMAIL' | 'SMS' | 'WHATSAPP';
+    recipient: string;
+    title: string;
+    message: string;
+    status?: 'DELIVERED' | 'QUEUED' | 'FAILED';
+  }): NotificationLog {
+    const all = this.getNotifications();
+    const item: NotificationLog = {
+      id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      bookingId: params.bookingId || '',
+      channel: params.channel,
+      recipient: params.recipient,
+      title: params.title,
+      message: params.message,
+      status: params.status || 'DELIVERED',
+      sentAt: new Date().toISOString()
+    };
+    all.unshift(item);
+    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(all));
+    return item;
   }
 
   getCustomers(businessId?: string): Customer[] {
@@ -238,7 +492,14 @@ class StorageEngine {
   }
 
   getNotifications(businessId?: string): NotificationLog[] {
-    return [];
+    const raw = localStorage.getItem(KEYS.NOTIFICATIONS);
+    if (!raw) return [];
+    try {
+      const all = JSON.parse(raw) as NotificationLog[];
+      return all;
+    } catch {
+      return [];
+    }
   }
 }
 

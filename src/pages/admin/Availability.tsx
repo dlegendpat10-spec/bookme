@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { BusinessHours, BlockedDate } from '../../types';
 import { Clock, Calendar, Check, Save, Plus, Trash2 } from 'lucide-react';
 
 export const Availability: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [hours, setHours] = useState<BusinessHours[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -19,7 +21,7 @@ export const Availability: React.FC = () => {
       setHours(business.hours);
       setBlockedDates(business.blockedDates || []);
     }
-  }, [business]);
+  }, [business?.id]);
 
   const handleHourToggle = (dayOfWeek: number) => {
     setHours(prev => prev.map(h => {

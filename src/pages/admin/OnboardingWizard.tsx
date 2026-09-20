@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
+import { mockStorage } from '../../services/mockStorage';
 import {
   Building2, Layers, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Sparkles
 } from 'lucide-react';
@@ -38,6 +39,8 @@ export const OnboardingWizard: React.FC = () => {
 
   // Form State
   const [businessName, setBusinessName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [isSlugCustomized, setIsSlugCustomized] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [selectedTemplate, setSelectedTemplate] = useState('custom');
   const [country, setCountry] = useState('Nigeria');
@@ -47,11 +50,40 @@ export const OnboardingWizard: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const handleBusinessNameChange = (val: string) => {
+    setBusinessName(val);
+    if (!isSlugCustomized) {
+      const autoSlug = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      setSlug(autoSlug);
+    }
+  };
+
+  const handleSlugChange = (val: string) => {
+    setIsSlugCustomized(true);
+    const clean = val
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/-+/g, '-');
+    setSlug(clean);
+  };
+
   const handleNext = () => {
     setErrorMessage('');
     if (step === 1) {
       if (!businessName.trim()) {
         setErrorMessage('Business name is required.');
+        return;
+      }
+      const cleanSlug = slug.replace(/^-+|-+$/g, '');
+      if (!cleanSlug) {
+        setErrorMessage('Please provide a valid URL slug for your booking link.');
+        return;
+      }
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanSlug)) {
+        setErrorMessage('URL slug may only contain lowercase letters, numbers, and single hyphens.');
         return;
       }
       setStep(2);
@@ -64,8 +96,14 @@ export const OnboardingWizard: React.FC = () => {
     setErrorMessage('');
     setIsSubmitting(true);
 
+    const cleanSlug = (slug || businessName)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
     const res = await api.createBusiness({
       name: businessName.trim(),
+      slug: cleanSlug,
       category,
       template: selectedTemplate,
       country,
@@ -76,7 +114,34 @@ export const OnboardingWizard: React.FC = () => {
     setIsSubmitting(false);
 
     if (res.success && res.data) {
-      updateUserBusiness(res.data.id, res.data.name, res.data.slug);
+      const finalSlug = res.data.slug || cleanSlug;
+      
+      // Register in local mock engine for instantaneous offline & preview availability
+      const { mockStorage } = await import('../../services/mockStorage');
+      mockStorage.addBusiness({
+        id: res.data.id,
+        name: res.data.name || businessName.trim(),
+        slug: finalSlug,
+        category: category,
+        description: description.trim(),
+        phone: '',
+        email: currentUser?.email || '',
+        address: address.trim() || country,
+        rating: 5.0,
+        reviewCount: 0,
+        accentColor: '#10B981',
+        ownerId: currentUser?.id || 'admin-user',
+        hours: [],
+        blockedDates: [],
+        reminderRules: [],
+        notificationsEnabled: {
+          email: true,
+          sms: true,
+          whatsapp: true,
+        },
+      });
+
+      updateUserBusiness(res.data.id, res.data.name, finalSlug);
       // Redirect to clean empty Dashboard
       navigate('/admin/dashboard');
     } else {
@@ -132,8 +197,34 @@ export const OnboardingWizard: React.FC = () => {
                 className="input-field"
                 placeholder="e.g. Apex Wellness Studio"
                 value={businessName}
-                onChange={e => setBusinessName(e.target.value)}
+                onChange={e => handleBusinessNameChange(e.target.value)}
               />
+            </div>
+
+            <div>
+              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Custom Public Booking URL *</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600 }}>Shareable with customers</span>
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                <span style={{ padding: '0 12px', color: 'var(--text-muted)', fontSize: '0.84rem', background: 'rgba(255, 255, 255, 0.04)', borderRight: '1px solid var(--border-subtle)', whiteSpace: 'nowrap', userSelect: 'none' }}>
+                  bookme.app/business/
+                </span>
+                <input
+                  type="text"
+                  required
+                  style={{ border: 'none', background: 'transparent', flex: 1, padding: '10px 12px', color: 'var(--text-main)', outline: 'none', fontSize: '0.9rem', fontWeight: 600 }}
+                  placeholder="your-business-url"
+                  value={slug}
+                  onChange={e => handleSlugChange(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', fontSize: '0.78rem', color: 'var(--text-faint)' }}>
+                <span>🔗 Client link:</span>
+                <code style={{ color: 'var(--brand-primary)', background: 'var(--brand-light)', padding: '2px 6px', borderRadius: '4px' }}>
+                  {window.location.origin}/business/{slug || 'your-business'}
+                </code>
+              </div>
             </div>
 
             <div>
@@ -258,6 +349,7 @@ export const OnboardingWizard: React.FC = () => {
               flexDirection: 'column', gap: '10px', fontSize: '0.9rem',
             }}>
               <div><strong style={{ color: 'var(--text-muted)' }}>Business Name:</strong> {businessName}</div>
+              <div><strong style={{ color: 'var(--text-muted)' }}>Booking URL:</strong> <code style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>{window.location.origin}/business/{slug}</code></div>
               <div><strong style={{ color: 'var(--text-muted)' }}>Category:</strong> {category}</div>
               <div><strong style={{ color: 'var(--text-muted)' }}>Template:</strong> {TEMPLATES.find(t => t.id === selectedTemplate)?.label}</div>
               <div><strong style={{ color: 'var(--text-muted)' }}>Location:</strong> {address || country}</div>

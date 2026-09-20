@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
+import { ServicesDirectoryPage } from './pages/public/ServicesDirectoryPage';
 import { BusinessBookingPage } from './pages/public/BusinessBookingPage';
 import { BookingSuccessPage } from './pages/public/BookingSuccessPage';
 
@@ -64,8 +65,9 @@ export const App: React.FC = () => {
         <BrowserRouter>
           <Navbar />
           <Routes>
-            {/* Public Marketing */}
+            {/* Public Marketing & Directory */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/services" element={<ServicesDirectoryPage />} />
 
             {/* Core Public Booking Engine */}
             <Route path="/business/:businessSlug" element={<BusinessBookingPage />} />

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { ServiceBooking } from '../../types';
 import { CreditCard, DollarSign, ArrowDownLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const PaymentsList: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
 
   const refresh = () => {
@@ -15,7 +17,7 @@ export const PaymentsList: React.FC = () => {
 
   useEffect(() => {
     refresh();
-  }, [business]);
+  }, [business?.id]);
 
   const handleSimulateRefund = (id: string) => {
     if (window.confirm('Simulate issuing a full refund to this customer?')) {

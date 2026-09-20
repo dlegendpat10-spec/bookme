@@ -1,9 +1,11 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { BarChart3, TrendingUp, Users, Clock, Calendar, CheckCircle } from 'lucide-react';
 
 export const Analytics: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const bookings = business ? mockStorage.getBookings(business.id) : [];
   const services = business ? mockStorage.getServices(business.id) : [];
 

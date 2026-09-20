@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { mockStorage } from '../../services/mockStorage';
 import { Service } from '../../types';
 import { Plus, Edit2, Trash2, Clock, Check, Layers } from 'lucide-react';
 
 export const ServicesList: React.FC = () => {
-  const business = mockStorage.getBusinesses()[0];
+  const { currentUser } = useAuth();
+  const business = mockStorage.getActiveBusiness(currentUser?.businessId, currentUser?.businessSlug);
   const [services, setServices] = useState<Service[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -26,7 +28,7 @@ export const ServicesList: React.FC = () => {
 
   useEffect(() => {
     refresh();
-  }, [business]);
+  }, [business?.id]);
 
   const handleOpenAdd = () => {
     setEditingService(null);

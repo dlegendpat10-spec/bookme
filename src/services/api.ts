@@ -64,7 +64,7 @@ export const api = {
     }),
 
   // Business
-  createBusiness: (data: { name: string; category?: string; template?: string; country?: string; address?: string; description?: string; phone?: string }) =>
+  createBusiness: (data: { name: string; slug?: string; category?: string; template?: string; country?: string; address?: string; description?: string; phone?: string }) =>
     request<any>('/businesses', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -72,6 +72,12 @@ export const api = {
 
   getMyBusiness: () =>
     request<any>('/businesses/me'),
+
+  updateMyBusiness: (data: { name?: string; slug?: string; category?: string; phone?: string; email?: string; address?: string; description?: string; accentColor?: string }) =>
+    request<any>('/businesses/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 
   // Services
   getServices: (slug?: string) =>

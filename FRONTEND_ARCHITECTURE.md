@@ -171,10 +171,10 @@ Exposes `window.BUSINESS_CONFIG`. This is the **only file that changes** when de
 
 ```js
 window.BUSINESS_CONFIG = {
-  name:                 'Brain Teaser Educational Consults',
-  shortName:            'Brain Teaser',
+  name:                 'Bookmi Appointments',
+  shortName:            'Bookmi',
   tagline:              '...',
-  initials:             'BT',
+  initials:             'BM',
   logo:                 null,           // URL or null -> initials fallback
 
   currency:             'NGN',
@@ -526,7 +526,7 @@ VITE_API_BASE_URL=https://bookmerefreshed.onrender.com
 | 3 | `localStorage` for mock auth | Real auth deferred to backend integration phase |
 | 4 | In-memory `DB` resets on page reload | Intentional for demo; Supabase will provide real persistence |
 | 5 | Staff selection skipped | PRD lists this as a post-MVP feature |
-| 6 | Default currency NGN | Configured for Brain Teaser (Lagos). Overridable via `config.js` |
+| 6 | Default currency NGN | Default currency set to NGN (Lagos). Overridable via `config.js` |
 | 7 | No payment gateway | Payments out of scope for MVP; "Pay on the day" UX copy used |
 | 8 | `file://` protocol compatible | Paths use relative URLs; `requireAuth` uses relative redirect |
 | 9 | Conflict detection is client-side only | Sufficient for mock; real backend must enforce uniqueness at DB level via row-locking or unique constraints |
