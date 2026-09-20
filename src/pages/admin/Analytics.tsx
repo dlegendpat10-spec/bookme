@@ -78,7 +78,7 @@ export const Analytics: React.FC = () => {
                   <span style={{ fontWeight: 600 }}>{idx + 1}. {s.name}</span>
                   <span style={{ color: 'var(--text-muted)' }}>{s.bookingCount} bookings</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', background: '#1E293B', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '8px', background: 'var(--border-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{
                     width: `${Math.min(100, (s.bookingCount / 150) * 100)}%`,
                     height: '100%',
@@ -104,7 +104,7 @@ export const Analytics: React.FC = () => {
                   <span style={{ fontWeight: 600 }}>{ph.hour}</span>
                   <span style={{ color: 'var(--text-muted)' }}>{ph.count} appointments</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', background: '#1E293B', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '8px', background: 'var(--border-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
                   <div style={{
                     width: `${ph.pct}%`,
                     height: '100%',

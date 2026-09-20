@@ -58,7 +58,7 @@ export const Navbar: React.FC = () => {
             fontWeight: 900, fontSize: '1.1rem', color: '#fff', fontFamily: 'Outfit, sans-serif',
           }}>B</div>
           <span className="brand-font" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.035em' }}>
-            Book<span style={{ color: 'var(--brand-primary)' }}>Me</span>
+            Book<span style={{ color: 'var(--brand-primary)' }}>mi</span>
           </span>
         </Link>
 

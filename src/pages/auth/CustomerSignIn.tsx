@@ -47,7 +47,7 @@ export const CustomerSignIn: React.FC = () => {
           }}>
             B
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Sign in to BookMe</h1>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Sign in to Bookmi</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Manage your business, appointments, and client schedules.
           </p>

@@ -49,7 +49,7 @@ export const CustomersList: React.FC = () => {
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '750px' }}>
           <thead>
-            <tr style={{ background: 'rgba(30, 41, 59, 0.6)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               <th style={{ padding: '14px 18px' }}>Customer Name</th>
               <th style={{ padding: '14px 18px' }}>Contact</th>
               <th style={{ padding: '14px 18px' }}>Total Bookings</th>

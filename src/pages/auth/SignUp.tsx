@@ -60,7 +60,7 @@ export const SignUp: React.FC = () => {
           }}>
             B
           </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Create Your BookMe Account</h1>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '6px' }}>Create Your Bookmi Account</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             Start accepting appointments and managing your business in minutes.
           </p>

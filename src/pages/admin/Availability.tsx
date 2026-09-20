@@ -109,7 +109,7 @@ export const Availability: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: h.isClosed ? 'rgba(15, 23, 42, 0.5)' : 'rgba(30, 41, 59, 0.5)',
+                background: h.isClosed ? 'var(--bg-app)' : 'var(--bg-card-hover)',
                 borderRadius: '8px',
                 border: '1px solid var(--border-subtle)',
                 flexWrap: 'wrap',

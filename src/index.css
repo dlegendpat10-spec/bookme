@@ -1,38 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap');
 
-/* ─── Design Tokens (Midnight default — overridden by ThemeContext) ──────── */
+/* ─── Design Tokens (Light Porcelain default) ───────────────────────────────── */
 :root {
-  --bg-app: #0B0F19;
-  --bg-card: #131B2E;
-  --bg-card-hover: #1A2540;
-  --bg-elevated: #1E293B;
-  --border-subtle: #1E2D45;
-  --border-strong: #2D4060;
-  --text-main: #F0F4FF;
-  --text-muted: #8AA0BD;
-  --text-faint: #4F6A8A;
-  --brand-primary: #10B981;
-  --brand-primary-hover: #059669;
-  --brand-light: rgba(16,185,129,0.12);
-  --shadow-glow: 0 0 24px -4px rgba(16,185,129,0.3);
-  --navbar-bg: rgba(11,15,25,0.88);
+  --bg-app: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F5F9;
+  --bg-elevated: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text-main: #0F172A;
+  --text-muted: #475569;
+  --text-faint: #64748B;
+  --brand-primary: #6366F1;
+  --brand-primary-hover: #4F46E5;
+  --brand-light: rgba(99, 102, 241, 0.08);
+  --shadow-glow: 0 10px 30px -4px rgba(99, 102, 241, 0.28);
+  --navbar-bg: rgba(255, 255, 255, 0.88);
 
-  /* Semantic status colors (theme-invariant) */
-  --status-confirmed-bg: rgba(16,185,129,0.14);
-  --status-confirmed-text: #34D399;
-  --status-confirmed-border: rgba(16,185,129,0.28);
-  --status-pending-bg: rgba(245,158,11,0.14);
-  --status-pending-text: #FBBF24;
-  --status-pending-border: rgba(245,158,11,0.28);
-  --status-completed-bg: rgba(59,130,246,0.14);
-  --status-completed-text: #60A5FA;
-  --status-completed-border: rgba(59,130,246,0.28);
-  --status-cancelled-bg: rgba(244,63,94,0.14);
-  --status-cancelled-text: #FB7185;
-  --status-cancelled-border: rgba(244,63,94,0.28);
-  --status-rescheduled-bg: rgba(168,85,247,0.14);
-  --status-rescheduled-text: #C084FC;
-  --status-rescheduled-border: rgba(168,85,247,0.28);
+  /* Semantic status colors (Light mode optimized) */
+  --status-confirmed-bg: #ECFDF5;
+  --status-confirmed-text: #047857;
+  --status-confirmed-border: #A7F3D0;
+  --status-pending-bg: #FFFBEB;
+  --status-pending-text: #D97706;
+  --status-pending-border: #FDE68A;
+  --status-completed-bg: #EFF6FF;
+  --status-completed-text: #1D4ED8;
+  --status-completed-border: #BFDBFE;
+  --status-cancelled-bg: #FFF1F2;
+  --status-cancelled-text: #E11D48;
+  --status-cancelled-border: #FECDD3;
+  --status-rescheduled-bg: #F3E8FF;
+  --status-rescheduled-text: #7E22CE;
+  --status-rescheduled-border: #DDD6FE;
 
   /* Spacing */
   --radius-sm: 6px;
@@ -42,9 +42,9 @@
   --radius-full: 9999px;
 
   /* Elevation */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
-  --shadow-lg: 0 12px 30px rgba(0,0,0,0.35);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 20px -2px rgba(99, 102, 241, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 40px -15px rgba(99, 102, 241, 0.15), 0 8px 16px -4px rgba(15, 23, 42, 0.06);
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────────── */

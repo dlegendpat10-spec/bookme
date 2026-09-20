@@ -46,13 +46,13 @@ export const AdminCalendar: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* View Mode Toggle */}
-          <div style={{ background: '#1E293B', padding: '4px', borderRadius: '8px', display: 'flex', gap: '4px' }}>
+          <div style={{ background: 'var(--border-subtle)', padding: '4px', borderRadius: '8px', display: 'flex', gap: '4px' }}>
             {(['day', 'week', 'month'] as const).map(mode => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 style={{
-                  background: viewMode === mode ? '#10B981' : 'transparent',
+                  background: viewMode === mode ? 'var(--brand-primary)' : 'transparent',
                   color: viewMode === mode ? '#FFFFFF' : 'var(--text-muted)',
                   border: 'none',
                   padding: '6px 14px',
@@ -107,16 +107,16 @@ export const AdminCalendar: React.FC = () => {
       <div className="card" style={{ padding: '0', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
           <thead>
-            <tr style={{ background: 'rgba(30, 41, 59, 0.5)', borderBottom: '1px solid var(--border-subtle)' }}>
+            <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border-subtle)' }}>
               <th style={{ width: '80px', padding: '14px', fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>Time</th>
               {weekDays.map(d => {
                 const isToday = d.toDateString() === today.toDateString();
                 return (
                   <th key={d.toISOString()} style={{ padding: '14px', textAlign: 'center', borderLeft: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontSize: '0.78rem', color: isToday ? '#10B981' : 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '0.78rem', color: isToday ? 'var(--brand-primary)' : 'var(--text-muted)', textTransform: 'uppercase' }}>
                       {d.toLocaleDateString('en-US', { weekday: 'short' })}
                     </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isToday ? '#10B981' : 'var(--text-main)' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isToday ? 'var(--brand-primary)' : 'var(--text-main)' }}>
                       {d.getDate()}
                     </div>
                   </th>
@@ -131,7 +131,7 @@ export const AdminCalendar: React.FC = () => {
 
               return (
                 <tr key={time} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '16px 10px', fontSize: '0.75rem', color: 'var(--text-faint)', textAlign: 'center', verticalAlign: 'top', background: 'rgba(19, 27, 46, 0.4)' }}>
+                  <td style={{ padding: '16px 10px', fontSize: '0.75rem', color: 'var(--text-faint)', textAlign: 'center', verticalAlign: 'top', background: 'var(--bg-app)' }}>
                     {displayTime}
                   </td>
                   {weekDays.map(d => {
@@ -149,15 +149,15 @@ export const AdminCalendar: React.FC = () => {
                           <div
                             key={b.id}
                             style={{
-                              background: b.bookingStatus === 'CONFIRMED' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)',
-                              borderLeft: '3px solid ' + (b.bookingStatus === 'CONFIRMED' ? '#10B981' : '#60A5FA'),
+                              background: b.bookingStatus === 'CONFIRMED' ? 'var(--status-confirmed-bg)' : 'var(--status-completed-bg)',
+                              borderLeft: '3px solid ' + (b.bookingStatus === 'CONFIRMED' ? 'var(--brand-primary)' : 'var(--status-completed-text)'),
                               borderRadius: '4px',
                               padding: '6px 8px',
                               marginBottom: '4px',
                               fontSize: '0.78rem'
                             }}
                           >
-                            <div style={{ fontWeight: 700, color: '#F8FAFC' }}>{b.customerName}</div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{b.customerName}</div>
                             <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{b.serviceName} ({b.displayTime})</div>
                           </div>
                         ))}

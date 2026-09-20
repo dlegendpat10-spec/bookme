@@ -127,7 +127,7 @@ export const NotificationsList: React.FC = () => {
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(30, 41, 59, 0.5)', padding: '14px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-elevated)', padding: '14px', borderRadius: '8px' }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>24 Hours Before Appointment</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sent via WhatsApp & Email</div>
@@ -140,7 +140,7 @@ export const NotificationsList: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(30, 41, 59, 0.5)', padding: '14px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-elevated)', padding: '14px', borderRadius: '8px' }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>2 Hours Before Appointment</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Sent via WhatsApp Quick Alert</div>

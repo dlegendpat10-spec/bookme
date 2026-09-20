@@ -65,10 +65,10 @@ export const PaymentsList: React.FC = () => {
 
         <div className="card">
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Processing Engine</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: '#F8FAFC' }}>
-            <ShieldCheck size={20} color="#10B981" /> Tokenized Direct
+          <div style={{ fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+            <ShieldCheck size={20} color="var(--brand-primary)" /> Tokenized Direct
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#34D399', marginTop: '4px' }}>PCI-DSS Tier 1 Simulated</div>
+          <div style={{ fontSize: '0.78rem', color: '#047857', marginTop: '4px' }}>PCI-DSS Tier 1 Simulated</div>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export const PaymentsList: React.FC = () => {
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '780px' }}>
           <thead>
-            <tr style={{ background: 'rgba(30, 41, 59, 0.6)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               <th style={{ padding: '14px 18px' }}>Booking Ref</th>
               <th style={{ padding: '14px 18px' }}>Customer</th>
               <th style={{ padding: '14px 18px' }}>Amount</th>

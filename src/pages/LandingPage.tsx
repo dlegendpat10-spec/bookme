@@ -27,7 +27,7 @@ const TESTIMONIALS = [
   {
     name: 'Marcus Vance',
     role: 'Luxe Grooming Studio',
-    quote: 'BookMe cut our scheduling overhead completely. Our clients appreciate the clean, instant checkout.',
+    quote: 'Bookmi cut our scheduling overhead completely. Our clients appreciate the clean, instant checkout.',
   },
   {
     name: 'Elena Rostova',
@@ -86,7 +86,7 @@ export const LandingPage: React.FC = () => {
           margin: '0 auto 40px',
           fontWeight: 400,
         }}>
-          BookMe provides a clean, friction-free booking experience for premium services, consultations, and professional appointments.
+          Bookmi provides a clean, friction-free booking experience for premium services, consultations, and professional appointments.
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>

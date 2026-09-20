@@ -116,9 +116,9 @@ export const BookingsList: React.FC = () => {
               key={st}
               onClick={() => setStatusFilter(st)}
               style={{
-                background: statusFilter === st ? '#10B981' : '#1E293B',
+                background: statusFilter === st ? 'var(--brand-primary)' : 'var(--bg-elevated)',
                 color: statusFilter === st ? '#FFFFFF' : 'var(--text-muted)',
-                border: '1px solid ' + (statusFilter === st ? '#10B981' : 'var(--border-subtle)'),
+                border: '1px solid ' + (statusFilter === st ? 'var(--brand-primary)' : 'var(--border-subtle)'),
                 padding: '6px 12px',
                 borderRadius: '6px',
                 fontSize: '0.78rem',
@@ -136,7 +136,7 @@ export const BookingsList: React.FC = () => {
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
           <thead>
-            <tr style={{ background: 'rgba(30, 41, 59, 0.6)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <tr style={{ background: 'var(--bg-card-hover)', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               <th style={{ padding: '14px 16px' }}>Reference</th>
               <th style={{ padding: '14px 16px' }}>Customer</th>
               <th style={{ padding: '14px 16px' }}>Service</th>
