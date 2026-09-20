@@ -4,12 +4,13 @@ import { mockStorage } from '../../services/mockStorage';
 import { useAuth } from '../../context/AuthContext';
 import { Service, BusinessTenant, TimeSlot, AdCampaign } from '../../types';
 import { ConflictModal } from '../../components/shared/ConflictModal';
+import { initiatePaystackPayment } from '../../services/paystack';
 import confetti from 'canvas-confetti';
 import {
   Clock, MapPin, Phone, ShieldCheck, ArrowRight,
   CheckCircle2, User, Calendar as CalendarIcon,
   Sparkles, Mail, MessageSquare, Tag, Megaphone,
-  Image as ImageIcon, Percent, X
+  Image as ImageIcon, Percent, X, CreditCard, Lock
 } from 'lucide-react';
 
 export const BusinessBookingPage: React.FC = () => {
@@ -41,6 +42,7 @@ export const BusinessBookingPage: React.FC = () => {
   const [conflictSlots, setConflictSlots] = useState<TimeSlot[]>([]);
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'PAYSTACK' | 'VENUE'>('PAYSTACK');
 
   const slotAutoSelected = useRef(false);
 
@@ -146,7 +148,7 @@ export const BusinessBookingPage: React.FC = () => {
     return { dateStr, dayName, dayNum: d.getDate(), month: d.toLocaleDateString('en-US', { month: 'short' }) };
   });
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!business || !selectedService || !selectedSlot) return;
 
     if (!customerName.trim()) {
@@ -158,6 +160,51 @@ export const BusinessBookingPage: React.FC = () => {
       return;
     }
 
+    const finalPrice = appliedDiscount
+      ? Math.max(100, Math.round(selectedService.price * (1 - appliedDiscount.percent / 100)))
+      : selectedService.price;
+
+    if (paymentMethod === 'PAYSTACK') {
+      setIsSubmitting(true);
+
+      initiatePaystackPayment({
+        email: customerEmail.trim().toLowerCase(),
+        amount: finalPrice,
+        currency: selectedService.currency || 'NGN',
+        customerName: customerName.trim(),
+        serviceName: selectedService.name,
+        businessName: business.name,
+        onSuccess: (paystackRef) => {
+          const result = mockStorage.createBooking({
+            businessId: business.id,
+            serviceId: selectedService.id,
+            date: selectedDate,
+            time: selectedSlot.time,
+            displayTime: selectedSlot.displayTime,
+            customerName: customerName.trim(),
+            customerEmail: customerEmail.trim(),
+            customerPhone: customerPhone.trim(),
+            customerNotes: notes.trim(),
+            paymentMethod: 'PAYSTACK (Online Card/Transfer)',
+            paymentStatus: 'PAID',
+            paymentReference: paystackRef,
+          });
+
+          setIsSubmitting(false);
+
+          if (result.success && result.booking) {
+            confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            navigate(`/business/${business.slug}/book/success?ref=${result.booking.bookingReference}&paid=1&gateway=paystack`);
+          }
+        },
+        onCancel: () => {
+          setIsSubmitting(false);
+        },
+      });
+      return;
+    }
+
+    // In-Venue payment option
     setIsSubmitting(true);
 
     setTimeout(() => {
@@ -171,7 +218,8 @@ export const BusinessBookingPage: React.FC = () => {
         customerEmail: customerEmail.trim(),
         customerPhone: customerPhone.trim(),
         customerNotes: notes.trim(),
-        paymentMethod: 'Pay on Arrival / Appointment',
+        paymentMethod: 'Pay on Arrival / In-Venue',
+        paymentStatus: 'UNPAID',
       });
 
       setIsSubmitting(false);
@@ -851,12 +899,69 @@ export const BusinessBookingPage: React.FC = () => {
                 />
               </div>
 
+              {/* Payment Method Selector */}
+              <div style={{ marginTop: '8px' }}>
+                <label className="field-label" style={{ marginBottom: '8px', display: 'block', fontSize: '0.84rem', fontWeight: 700 }}>
+                  Payment Method
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '12px' }}>
+                  {/* Option 1: Paystack */}
+                  <div
+                    onClick={() => setPaymentMethod('PAYSTACK')}
+                    style={{
+                      border: paymentMethod === 'PAYSTACK' ? '2px solid #00C3F7' : '1px solid var(--border-subtle)',
+                      background: paymentMethod === 'PAYSTACK' ? 'rgba(0, 195, 247, 0.08)' : 'var(--bg-app)',
+                      borderRadius: '12px',
+                      padding: '14px 16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ background: '#00C3F7', color: '#0a1128', fontWeight: 900, borderRadius: '5px', padding: '2px 6px', fontSize: '0.75rem' }}>P</div>
+                        <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#f8fafc' }}>Pay Online via Paystack</span>
+                      </div>
+                      <span style={{ fontSize: '0.7rem', background: '#00C3F722', color: '#00C3F7', padding: '2px 8px', borderRadius: '99px', fontWeight: 700 }}>
+                        Instant
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                      Cards (Visa, Mastercard, Verve), Bank Transfer, USSD & Apple Pay.
+                    </div>
+                  </div>
+
+                  {/* Option 2: Pay on Arrival */}
+                  <div
+                    onClick={() => setPaymentMethod('VENUE')}
+                    style={{
+                      border: paymentMethod === 'VENUE' ? '2px solid var(--brand-primary)' : '1px solid var(--border-subtle)',
+                      background: paymentMethod === 'VENUE' ? 'var(--brand-light)' : 'var(--bg-app)',
+                      borderRadius: '12px',
+                      padding: '14px 16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1rem' }}>📍</span>
+                        <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#f8fafc' }}>Pay on Arrival</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                      Pay at venue with Cash or POS when you arrive for your appointment.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Gentle Payment Reassurance Notice */}
               <div style={{
-                background: 'var(--brand-light)',
-                border: '1px solid var(--brand-primary)',
+                background: paymentMethod === 'PAYSTACK' ? 'rgba(0, 195, 247, 0.06)' : 'var(--brand-light)',
+                border: paymentMethod === 'PAYSTACK' ? '1px solid rgba(0, 195, 247, 0.25)' : '1px solid var(--brand-primary)',
                 borderRadius: '12px',
-                padding: '14px 16px',
+                padding: '12px 16px',
                 marginTop: '6px',
                 display: 'flex',
                 alignItems: 'center',
@@ -864,25 +969,24 @@ export const BusinessBookingPage: React.FC = () => {
                 fontSize: '0.86rem',
                 color: 'var(--text-main)',
               }}>
-                <CheckCircle2 size={18} color="var(--brand-primary)" style={{ flexShrink: 0 }} />
-                <span>
-                  <strong>No online charge today.</strong> You can pay with card or cash when you arrive for your appointment{' '}
-                  {appliedDiscount ? (
-                    <>
-                      <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: '6px' }}>
-                        {selectedService.currency} {Number(selectedService.price).toLocaleString()}
-                      </span>
-                      <strong style={{ color: 'var(--brand-primary)' }}>
-                        {selectedService.currency} {Number(Math.round(selectedService.price * (1 - appliedDiscount.percent / 100))).toLocaleString()}
-                      </strong>{' '}
-                      <span style={{ background: '#10B98122', color: '#10B981', padding: '2px 6px', borderRadius: '4px', fontSize: '0.74rem', fontWeight: 800 }}>
-                        {appliedDiscount.percent}% OFF ({appliedDiscount.code})
-                      </span>
-                    </>
-                  ) : (
-                    `(${selectedService.currency} ${Number(selectedService.price).toLocaleString()})`
-                  )}.
-                </span>
+                {paymentMethod === 'PAYSTACK' ? (
+                  <>
+                    <Lock size={18} color="#00C3F7" style={{ flexShrink: 0 }} />
+                    <span>
+                      <strong>Secured by Paystack:</strong> 256-bit encryption. Total due:{' '}
+                      <strong style={{ color: '#00C3F7' }}>
+                        {selectedService.currency} {Number(appliedDiscount ? Math.round(selectedService.price * (1 - appliedDiscount.percent / 100)) : selectedService.price).toLocaleString()}
+                      </strong>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={18} color="var(--brand-primary)" style={{ flexShrink: 0 }} />
+                    <span>
+                      <strong>No online charge today.</strong> Pay when you arrive at the venue ({selectedService.currency} {Number(appliedDiscount ? Math.round(selectedService.price * (1 - appliedDiscount.percent / 100)) : selectedService.price).toLocaleString()}).
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Confirm Action Button */}
@@ -898,12 +1002,18 @@ export const BusinessBookingPage: React.FC = () => {
                   borderRadius: '12px',
                   marginTop: '8px',
                   justifyContent: 'center',
+                  background: paymentMethod === 'PAYSTACK' ? '#00C3F7' : undefined,
+                  color: paymentMethod === 'PAYSTACK' ? '#0a1128' : undefined,
                 }}
               >
                 {isSubmitting ? (
-                  <span className="animate-pulse">Confirming your appointment…</span>
+                  <span className="animate-pulse">Processing booking…</span>
+                ) : paymentMethod === 'PAYSTACK' ? (
+                  <>
+                    <CreditCard size={18} /> Pay {selectedService.currency || '₦'} {Number(appliedDiscount ? Math.round(selectedService.price * (1 - appliedDiscount.percent / 100)) : selectedService.price).toLocaleString()} with Paystack <ArrowRight size={16} />
+                  </>
                 ) : (
-                  <>Confirm Appointment with {business.name} <ArrowRight size={16} /></>
+                  <>Confirm Appointment (Pay at Venue) <ArrowRight size={16} /></>
                 )}
               </button>
             </div>

@@ -126,10 +126,23 @@ export const BookingSuccessPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Amount Paid</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Amount</span>
             <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)', fontFamily: 'Outfit, sans-serif' }}>
               {booking.currency} {booking.amount.toLocaleString()}
             </strong>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Payment Method</span>
+            {booking.paymentStatus === 'PAID' || searchParams.get('paid') === '1' ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0, 195, 247, 0.15)', color: '#00C3F7', padding: '4px 10px', borderRadius: '6px', fontWeight: 800, fontSize: '0.82rem' }}>
+                ✓ Paid in Full via Paystack
+              </span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, fontSize: '0.82rem' }}>
+                Pay on Arrival / In-Venue
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>

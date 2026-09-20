@@ -124,7 +124,7 @@ export const AdminLayout: React.FC = () => {
 
         {/* Footer info */}
         <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', fontSize: '0.75rem', color: 'var(--text-faint)' }}>
-          <div>BookMe Multi-Tenant Core</div>
+          <div>Bookmi Multi-Tenant Core</div>
           <div>v2.4.0 • Local Mock Engine</div>
         </div>
       </aside>

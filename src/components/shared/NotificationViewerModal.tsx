@@ -72,6 +72,18 @@ export const NotificationViewerModal: React.FC<{ onClose: () => void }> = ({ onC
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap', lineHeight: 1.4 }}>
                   {log.message}
                 </div>
+                {log.message.includes('/auth/reset-password') && (
+                  <div style={{ marginTop: '10px' }}>
+                    <a
+                      href={log.message.match(/https?:\/\/[^\s]+/)?.[0] || '#'}
+                      onClick={onClose}
+                      className="btn btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '6px 14px', textDecoration: 'none' }}
+                    >
+                      Open Password Reset Link &rarr;
+                    </a>
+                  </div>
+                )}
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-faint)', marginTop: '8px' }}>
                   Dispatched at: {new Date(log.sentAt).toLocaleTimeString()}
                 </div>

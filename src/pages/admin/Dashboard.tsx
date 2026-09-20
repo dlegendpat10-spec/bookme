@@ -242,7 +242,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="card" style={{ padding: '28px', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <Sparkles size={20} color="var(--brand-primary)" />
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Welcome to BookMe!</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Welcome to Bookmi!</h2>
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', lineHeight: 1.6 }}>
                 Your business portal is live. Share your link with customers or add custom services below.

@@ -50,8 +50,8 @@ export const NotificationsList: React.FC = () => {
     mockStorage.logNotification({
       channel: 'EMAIL',
       recipient: clientEmail,
-      title: `[Verified Dispatch] Booking Confirmed with ${business?.name || 'BookMe'}`,
-      message: `Hi Valued Client,\n\nYour appointment with ${business?.name || 'BookMe Business'} has been scheduled. Both client and admin email channels are verified and operational!`,
+      title: `[Verified Dispatch] Booking Confirmed with ${business?.name || 'Bookmi'}`,
+      message: `Hi Valued Client,\n\nYour appointment with ${business?.name || 'Bookmi Business'} has been scheduled. Both client and admin email channels are verified and operational!`,
       status: 'DELIVERED',
     });
 
@@ -59,7 +59,7 @@ export const NotificationsList: React.FC = () => {
     mockStorage.logNotification({
       channel: 'EMAIL',
       recipient: adminEmail,
-      title: `[Verified Dispatch] Admin Booking Alert - ${business?.name || 'BookMe'}`,
+      title: `[Verified Dispatch] Admin Booking Alert - ${business?.name || 'Bookmi'}`,
       message: `Hello ${business?.name || 'Business'} Admin,\n\nTest dispatch confirmed. Clients and admins automatically receive formatted email notifications for all bookings, status updates, and responses.`,
       status: 'DELIVERED',
     });
@@ -70,7 +70,7 @@ export const NotificationsList: React.FC = () => {
   };
 
   const handleSendRegistrationEmail = () => {
-    const email = business?.email || currentUser?.email || 'admin@bookme.local';
+    const email = business?.email || currentUser?.email || 'admin@bookmi.local';
     const name = currentUser?.fullName || business?.name || 'Valued Partner';
 
     mockStorage.sendRegistrationConfirmationEmail({

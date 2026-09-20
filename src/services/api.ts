@@ -104,4 +104,27 @@ export const api = {
   // Dashboard Stats
   getDashboardStats: () =>
     request<{ total_bookings: number; pending_bookings: number; confirmed_bookings: number; completed_bookings: number; cancelled_bookings: number; total_revenue: number }>('/dashboard/stats'),
+
+  // Paystack Payments
+  getPaystackConfig: () =>
+    request<{ public_key: string; gateway: string; supported_channels: string[]; currency: string }>('/payments/config'),
+
+  initializePayment: (data: {
+    booking_id?: string;
+    booking_reference?: string;
+    email: string;
+    amount: number;
+    currency?: string;
+    callback_url?: string;
+    customer_name?: string;
+    service_name?: string;
+    business_name?: string;
+  }) =>
+    request<{ authorization_url: string; access_code: string; reference: string; public_key: string }>('/payments/initialize', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  verifyPayment: (reference: string) =>
+    request<{ verified: boolean; reference: string; payment_status: string; booking_status: string }>('/payments/verify/' + encodeURIComponent(reference)),
 };

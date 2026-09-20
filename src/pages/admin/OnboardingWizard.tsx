@@ -146,7 +146,7 @@ export const OnboardingWizard: React.FC = () => {
       // Dispatch business registration confirmation email
       mockStorage.sendRegistrationConfirmationEmail({
         fullName: currentUser?.fullName || businessName.trim(),
-        email: currentUser?.email || 'admin@bookme.local',
+        email: currentUser?.email || 'admin@bookmi.local',
         role: 'BUSINESS_ADMIN',
         businessName: res.data.name || businessName.trim(),
       });
@@ -217,7 +217,7 @@ export const OnboardingWizard: React.FC = () => {
               </label>
               <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                 <span style={{ padding: '0 12px', color: 'var(--text-muted)', fontSize: '0.84rem', background: 'rgba(255, 255, 255, 0.04)', borderRight: '1px solid var(--border-subtle)', whiteSpace: 'nowrap', userSelect: 'none' }}>
-                  bookme.app/business/
+                  bookmi.app/business/
                 </span>
                 <input
                   type="text"

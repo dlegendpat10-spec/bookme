@@ -107,13 +107,27 @@ export const PaymentsList: React.FC = () => {
                   <td style={{ padding: '14px 18px', fontWeight: 700 }}>
                     {b.currency} {b.amount.toLocaleString()}
                   </td>
-                  <td style={{ padding: '14px 18px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {b.paymentMethod}
+                  <td style={{ padding: '14px 18px', fontSize: '0.85rem' }}>
+                    {b.paymentMethod?.includes('PAYSTACK') ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(0, 195, 247, 0.12)', color: '#00C3F7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, fontSize: '0.78rem' }}>
+                        Paystack Online
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>{b.paymentMethod || 'In-Venue'}</span>
+                    )}
                   </td>
                   <td style={{ padding: '14px 18px' }}>
                     <span className="badge" style={{
-                      background: b.paymentStatus === 'PAID' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                      color: b.paymentStatus === 'PAID' ? '#34D399' : '#FB7185'
+                      background: b.paymentStatus === 'PAID'
+                        ? 'rgba(16, 185, 129, 0.15)'
+                        : b.paymentStatus === 'REFUNDED'
+                        ? 'rgba(244, 63, 94, 0.15)'
+                        : 'rgba(245, 158, 11, 0.15)',
+                      color: b.paymentStatus === 'PAID'
+                        ? '#34D399'
+                        : b.paymentStatus === 'REFUNDED'
+                        ? '#FB7185'
+                        : '#F59E0B'
                     }}>
                       {b.paymentStatus}
                     </span>

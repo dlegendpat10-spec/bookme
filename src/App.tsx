@@ -34,6 +34,7 @@ import { MyBookings } from './pages/customer/MyBookings';
 import { CustomerSignIn } from './pages/auth/CustomerSignIn';
 import { SignUp } from './pages/auth/SignUp';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
+import { ResetPassword } from './pages/auth/ResetPassword';
 
 // Protected Route Guard
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -80,6 +81,8 @@ export const App: React.FC = () => {
             <Route path="/auth/register" element={<SignUp />} />
             <Route path="/register" element={<Navigate to="/auth/register" replace />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<Navigate to="/auth/reset-password" replace />} />
 
             {/* Business Onboarding Wizard */}
             <Route

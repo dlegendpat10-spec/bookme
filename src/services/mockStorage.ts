@@ -1,4 +1,4 @@
-import { BusinessTenant, Service, ServiceBooking, Customer, TimeSlot, NotificationLog, BookingStatus, AdCampaign } from '../types';
+import { BusinessTenant, Service, ServiceBooking, Customer, TimeSlot, NotificationLog, BookingStatus, AdCampaign, PaymentStatus } from '../types';
 import { INITIAL_BUSINESSES, INITIAL_SERVICES, INITIAL_ADS } from '../mock/initialData';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://bookmerefreshed.onrender.com').replace(/\/$/, '') + '/api/v1';
@@ -341,6 +341,8 @@ class StorageEngine {
     time?: string;
     displayTime?: string;
     paymentMethod?: string;
+    paymentStatus?: PaymentStatus;
+    paymentReference?: string;
     notes?: string;
     customerNotes?: string;
   }): { success: boolean; code?: string; booking?: ServiceBooking; error?: string } {
@@ -352,6 +354,8 @@ class StorageEngine {
     const timeVal = params.startTime || params.time || '09:00';
     const displayVal = params.displayTime || timeVal;
     const notesVal = params.notes || params.customerNotes || '';
+    const payStatus: PaymentStatus = params.paymentStatus || 'UNPAID';
+    const payMethod = params.paymentMethod || (payStatus === 'PAID' ? 'PAYSTACK' : 'PAY_AT_VENUE');
 
     const newBooking: ServiceBooking = {
       id: 'bk-' + Date.now(),
@@ -370,11 +374,11 @@ class StorageEngine {
       time: timeVal,
       displayTime: displayVal,
       endTime: timeVal,
-      bookingStatus: 'PENDING',
-      paymentStatus: 'UNPAID',
+      bookingStatus: payStatus === 'PAID' ? 'CONFIRMED' : 'PENDING',
+      paymentStatus: payStatus,
       amount: service.price,
       currency: 'NGN',
-      paymentMethod: 'PAY_AT_VENUE',
+      paymentMethod: payMethod,
       createdAt: new Date().toISOString(),
       customerNotes: params.notes,
     };
@@ -383,14 +387,29 @@ class StorageEngine {
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
 
     // 1. Email notification to Client
+    const paymentNotice = payStatus === 'PAID'
+      ? `• Payment Status: PAID IN FULL via Paystack (Ref: #${params.paymentReference || ref})`
+      : `• Payment Status: UNPAID (Payment collected in-person upon arrival)`;
+
     this.logNotification({
       bookingId: newBooking.id,
       channel: 'EMAIL',
       recipient: params.customerEmail,
       title: `Booking Confirmed: ${service.name} at ${biz.name} [#${ref}]`,
-      message: `Hi ${params.customerName},\n\nYour appointment for ${service.name} on ${dateVal} at ${displayVal} with ${biz.name} has been confirmed.\n\nBooking Reference: #${ref}\nLocation: ${biz.address}\nPrice: NGN ${service.price.toLocaleString()}\n\nThank you for choosing ${biz.name}!`,
+      message: `Hi ${params.customerName},\n\nYour appointment for ${service.name} on ${dateVal} at ${displayVal} with ${biz.name} has been confirmed.\n\nBooking Reference: #${ref}\nLocation: ${biz.address}\nPrice: NGN ${service.price.toLocaleString()}\n${paymentNotice}\n\nThank you for choosing ${biz.name}!`,
       status: 'DELIVERED',
     });
+
+    if (payStatus === 'PAID') {
+      this.logNotification({
+        bookingId: newBooking.id,
+        channel: 'EMAIL',
+        recipient: params.customerEmail,
+        title: `Payment Receipt: NGN ${service.price.toLocaleString()} via Paystack [#${ref}]`,
+        message: `Hello ${params.customerName},\n\nYour online payment of NGN ${service.price.toLocaleString()} via Paystack was successfully processed for ${service.name} at ${biz.name}.\n\nTransaction Reference: ${params.paymentReference || ref}\nGateway: Paystack 256-Bit SSL\nStatus: SETTLED`,
+        status: 'DELIVERED',
+      });
+    }
 
     // 2. Email notification to Business Admin
     const adminEmail = biz.email || `admin@${biz.slug}.com`;
@@ -399,7 +418,7 @@ class StorageEngine {
       channel: 'EMAIL',
       recipient: adminEmail,
       title: `New Booking Alert: ${params.customerName} - ${service.name} [#${ref}]`,
-      message: `Hello ${biz.name} Team,\n\nA new booking has been made:\n\nCustomer: ${params.customerName} (${params.customerEmail}, ${params.customerPhone})\nService: ${service.name}\nDate: ${dateVal} at ${displayVal}\nReference: #${ref}\nNotes: ${notesVal || 'None'}\n\nYou can manage this appointment in your BookMe Admin Dashboard.`,
+      message: `Hello ${biz.name} Team,\n\nA new booking has been made:\n\nCustomer: ${params.customerName} (${params.customerEmail}, ${params.customerPhone})\nService: ${service.name}\nDate: ${dateVal} at ${displayVal}\nReference: #${ref}\nPayment: ${payStatus} (${payMethod})\nNotes: ${notesVal || 'None'}\n\nYou can manage this appointment in your Bookmi Admin Dashboard.`,
       status: 'DELIVERED',
     });
 
@@ -417,10 +436,42 @@ class StorageEngine {
         customer_name: params.customerName,
         customer_email: params.customerEmail,
         customer_phone: params.customerPhone,
+        payment_status: payStatus,
       })
     }).catch(err => console.warn('Async DB booking sync notice:', err.message));
 
     return { success: true, code: ref, booking: newBooking };
+  }
+
+  updateBookingPaymentStatus(
+    bookingReference: string,
+    status: PaymentStatus,
+    method: string = 'PAYSTACK',
+    reference?: string
+  ): ServiceBooking | null {
+    const bookings = this.getBookings();
+    const index = bookings.findIndex(b => b.bookingReference === bookingReference || b.id === bookingReference);
+    if (index === -1) return null;
+
+    bookings[index].paymentStatus = status;
+    bookings[index].paymentMethod = method;
+    if (status === 'PAID') {
+      bookings[index].bookingStatus = 'CONFIRMED';
+    }
+
+    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
+
+    // Audit log notification
+    this.logNotification({
+      bookingId: bookings[index].id,
+      channel: 'EMAIL',
+      recipient: bookings[index].customerEmail,
+      title: `Payment Updated: ${status} for Booking #${bookingReference}`,
+      message: `Your payment status for ${bookings[index].serviceName} has been updated to ${status} via ${method}.\nReference: ${reference || bookingReference}`,
+      status: 'DELIVERED',
+    });
+
+    return bookings[index];
   }
 
   rescheduleBooking(bookingId: string, newDate: string, newTime: string, _reason?: string): ServiceBooking {
@@ -553,10 +604,103 @@ class StorageEngine {
     return this.logNotification({
       channel: 'EMAIL',
       recipient: params.email,
-      title: `Registration Confirmed: Welcome to BookMe, ${params.fullName}!`,
-      message: `Dear ${params.fullName},\n\nYour BookMe account registration${bizDetail} has been successfully confirmed and verified!\n\n• Account Email: ${params.email}\n• Role: ${roleText}\n• Status: Active & Two-Factor Ready\n• Direct Booking Access: Enabled\n\nYou can now browse verified service providers, schedule instant appointments, or manage your business storefront.\n\nThank you for choosing BookMe!`,
+      title: `Registration Confirmed: Welcome to Bookmi, ${params.fullName}!`,
+      message: `Dear ${params.fullName},\n\nYour Bookmi account registration${bizDetail} has been successfully confirmed and verified!\n\n• Account Email: ${params.email}\n• Role: ${roleText}\n• Status: Active & Two-Factor Ready\n• Direct Booking Access: Enabled\n\nYou can now browse verified service providers, schedule instant appointments, or manage your business storefront.\n\nThank you for choosing Bookmi!`,
       status: 'DELIVERED',
     });
+  }
+
+  sendPasswordResetEmail(params: {
+    email: string;
+    resetToken: string;
+    resetUrl: string;
+    fullName?: string;
+  }): NotificationLog {
+    const name = params.fullName || 'Bookmi User';
+    const notif = this.logNotification({
+      channel: 'EMAIL',
+      recipient: params.email,
+      title: `Password Reset Request — Action Required`,
+      message: `Hello ${name},\n\nWe received a request to reset your password for Bookmi account (${params.email}).\n\nReset Link (Expires in 1 hour):\n${params.resetUrl}\n\nSecurity Token: ${params.resetToken}\n\nClick the link or paste it into your browser to set a new password. If you did not make this request, you can safely ignore this email.`,
+      status: 'DELIVERED',
+    });
+
+    try {
+      const raw = localStorage.getItem('bookme_reset_tokens');
+      const map = raw ? JSON.parse(raw) : {};
+      map[params.resetToken] = {
+        email: params.email.toLowerCase().trim(),
+        resetUrl: params.resetUrl,
+        expiresAt: Date.now() + 60 * 60 * 1000,
+      };
+      localStorage.setItem('bookme_reset_tokens', JSON.stringify(map));
+    } catch (err) {
+      console.error('Failed to store reset token in mock storage:', err);
+    }
+
+    return notif;
+  }
+
+  validateResetToken(token: string, email: string): { valid: boolean; reason?: string } {
+    try {
+      const raw = localStorage.getItem('bookme_reset_tokens');
+      if (!raw) return { valid: true };
+      const map = JSON.parse(raw);
+      const rec = map[token];
+      if (!rec) return { valid: true }; // allow lenient fallback
+      if (Date.now() > rec.expiresAt) {
+        return { valid: false, reason: 'This password reset link has expired. Please request a new one.' };
+      }
+      if (rec.email && rec.email !== email.toLowerCase().trim()) {
+        return { valid: false, reason: 'This reset token does not match the specified email.' };
+      }
+      return { valid: true };
+    } catch {
+      return { valid: true };
+    }
+  }
+
+  resetPassword(email: string, newPassword: string, token?: string): boolean {
+    const cleanEmail = email.toLowerCase().trim();
+    try {
+      if (token) {
+        const raw = localStorage.getItem('bookme_reset_tokens');
+        if (raw) {
+          const map = JSON.parse(raw);
+          delete map[token];
+          localStorage.setItem('bookme_reset_tokens', JSON.stringify(map));
+        }
+      }
+
+      // Update in Customers if registered customer
+      const rawCust = localStorage.getItem(KEYS.CUSTOMERS);
+      if (rawCust) {
+        const custs = JSON.parse(rawCust) as Customer[];
+        let found = false;
+        custs.forEach(c => {
+          if (c.email.toLowerCase().trim() === cleanEmail) {
+            (c as any).password = newPassword;
+            found = true;
+          }
+        });
+        if (found) {
+          localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify(custs));
+        }
+      }
+
+      // Log success notification
+      this.logNotification({
+        channel: 'EMAIL',
+        recipient: cleanEmail,
+        title: `Security Alert: Your Password Was Successfully Updated`,
+        message: `Hello,\n\nThe password for your Bookmi account (${cleanEmail}) was successfully changed.\n\nIf you performed this action, no further steps are needed. If you did NOT change your password, please contact Bookmi support immediately.`,
+        status: 'DELIVERED',
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   getCustomers(businessId?: string): Customer[] {
