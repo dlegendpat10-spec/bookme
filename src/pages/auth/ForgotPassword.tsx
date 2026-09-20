@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
-import { mockStorage } from '../../services/mockStorage';
-import { NotificationViewerModal } from '../../components/shared/NotificationViewerModal';
-import { Mail, AlertCircle, CheckCircle2, Loader2, ArrowLeft, ExternalLink, Bell, RefreshCw } from 'lucide-react';
+import { Mail, AlertCircle, CheckCircle2, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [resetData, setResetData] = useState<{ email: string; resetUrl: string; resetToken: string } | null>(null);
-  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [resetData, setResetData] = useState<{ email: string } | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,35 +22,15 @@ export const ForgotPassword: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // 1. Generate token and fallback link
-    const fallbackToken = 'rst_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-    let resetToken = fallbackToken;
-    let resetUrl = `${window.location.origin}/auth/reset-password?token=${fallbackToken}&email=${encodeURIComponent(cleanEmail)}`;
-
     try {
-      const res = await api.forgotPassword(cleanEmail);
-      if (res.data && res.data.reset_token) {
-        resetToken = res.data.reset_token;
-      }
-      if (res.data && res.data.reset_url) {
-        resetUrl = res.data.reset_url;
-      }
+      await api.forgotPassword(cleanEmail);
     } catch (err) {
-      console.warn('Backend forgotPassword call had an issue, falling back to local dispatch:', err);
+      console.warn('Backend forgotPassword call had an issue:', err);
     }
-
-    // 2. Dispatch simulated email to local notification queue
-    mockStorage.sendPasswordResetEmail({
-      email: cleanEmail,
-      resetToken,
-      resetUrl,
-    });
 
     setIsSubmitting(false);
     setResetData({
-      email: cleanEmail,
-      resetUrl,
-      resetToken,
+      email: cleanEmail
     });
   };
 
@@ -85,61 +62,6 @@ export const ForgotPassword: React.FC = () => {
               </p>
             </div>
 
-            {/* Simulated Email Box / Direct Action */}
-            <div style={{
-              background: 'rgba(30, 41, 59, 0.7)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: '12px',
-              padding: '18px',
-              marginBottom: '20px'
-            }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '8px' }}>
-                Instant Access for Testing
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
-                Since this development environment does not connect to a public mail server, your reset link was logged to your local notification inbox. You can reset right now using the button below:
-              </p>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  const url = new URL(resetData.resetUrl);
-                  navigate(url.pathname + url.search);
-                }}
-                style={{
-                  width: '100%',
-                  minHeight: '44px',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  marginBottom: '10px'
-                }}
-              >
-                <span>Reset Password Now</span>
-                <ExternalLink size={16} />
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setShowNotifModal(true)}
-                style={{
-                  width: '100%',
-                  minHeight: '40px',
-                  fontSize: '0.86rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <Bell size={16} color="#60A5FA" />
-                <span>View Dispatched Email in Inbox Log</span>
-              </button>
-            </div>
 
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
               <button
@@ -238,8 +160,6 @@ export const ForgotPassword: React.FC = () => {
           </>
         )}
       </div>
-
-      {showNotifModal && <NotificationViewerModal onClose={() => setShowNotifModal(false)} />}
     </div>
   );
 };

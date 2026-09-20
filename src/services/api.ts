@@ -58,7 +58,7 @@ export const api = {
     request<{ id: string; email: string; full_name: string; role: string; business_id: string | null; business_name?: string; business_slug?: string }>('/auth/me'),
 
   forgotPassword: (email: string) =>
-    request<{ message: string; reset_token?: string; reset_url?: string }>('/auth/forgot-password', {
+    request<{ message: string }>('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
