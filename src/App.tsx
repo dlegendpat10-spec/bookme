@@ -23,6 +23,7 @@ import { PaymentsList } from './pages/admin/PaymentsList';
 import { NotificationsList } from './pages/admin/NotificationsList';
 import { Analytics } from './pages/admin/Analytics';
 import { BusinessProfile } from './pages/admin/BusinessProfile';
+import { AdCampaigns } from './pages/admin/AdCampaigns';
 import { OnboardingWizard } from './pages/admin/OnboardingWizard';
 
 // Customer
@@ -110,6 +111,7 @@ export const App: React.FC = () => {
               <Route path="notifications" element={<NotificationsList />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="business" element={<BusinessProfile />} />
+              <Route path="ads" element={<AdCampaigns />} />
             </Route>
 
             {/* Customer Portal */}

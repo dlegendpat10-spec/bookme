@@ -156,6 +156,7 @@ export interface BusinessTenant {
   description: string;
   logoUrl?: string;
   heroImageUrl?: string;
+  pictures?: string[];
   phone: string;
   email: string;
   address: string;

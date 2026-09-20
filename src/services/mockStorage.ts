@@ -1,4 +1,4 @@
-import { BusinessTenant, Service, ServiceBooking, Customer, TimeSlot, NotificationLog, BookingStatus } from '../types';
+import { BusinessTenant, Service, ServiceBooking, Customer, TimeSlot, NotificationLog, BookingStatus, AdCampaign } from '../types';
 import { INITIAL_BUSINESSES, INITIAL_SERVICES, INITIAL_ADS } from '../mock/initialData';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://bookmerefreshed.onrender.com').replace(/\/$/, '') + '/api/v1';
@@ -9,6 +9,7 @@ const KEYS = {
   BOOKINGS: 'bookme_bookings',
   CUSTOMERS: 'bookme_customers',
   NOTIFICATIONS: 'bookme_notifications',
+  ADS: 'bookme_ads',
   SIMULATE_CONFLICT: 'bookme_sim_conflict'
 };
 
@@ -55,7 +56,13 @@ class StorageEngine {
       if (storedBiz) {
         const parsed: BusinessTenant[] = JSON.parse(storedBiz);
         const filtered = parsed.filter(b => b.slug !== 'luxe-grooming' && b.id !== '00000000-0000-0000-0000-000000000001');
-        localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(filtered));
+        const mergedBiz = [...filtered];
+        INITIAL_BUSINESSES.forEach(ib => {
+          if (!mergedBiz.some(b => b.id === ib.id || b.slug === ib.slug)) {
+            mergedBiz.push(ib);
+          }
+        });
+        localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(mergedBiz.length > 0 ? mergedBiz : INITIAL_BUSINESSES));
       } else {
         localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
       }
@@ -64,7 +71,13 @@ class StorageEngine {
       if (storedSvc) {
         const parsed: Service[] = JSON.parse(storedSvc);
         const filtered = parsed.filter(s => s.businessId !== '00000000-0000-0000-0000-000000000001' && s.businessId !== '00000000-0000-0000-0000-000000000003');
-        localStorage.setItem(KEYS.SERVICES, JSON.stringify(filtered));
+        const mergedSvc = [...filtered];
+        INITIAL_SERVICES.forEach(is => {
+          if (!mergedSvc.some(s => s.id === is.id)) {
+            mergedSvc.push(is);
+          }
+        });
+        localStorage.setItem(KEYS.SERVICES, JSON.stringify(mergedSvc.length > 0 ? mergedSvc : INITIAL_SERVICES));
       } else {
         localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
       }
@@ -77,10 +90,23 @@ class StorageEngine {
       } else {
         localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
       }
+
+      const storedAds = localStorage.getItem(KEYS.ADS);
+      if (storedAds) {
+        const parsed = JSON.parse(storedAds);
+        const merged = Array.isArray(parsed) ? [...parsed] : [];
+        INITIAL_ADS.forEach(ia => {
+          if (!merged.some((a: any) => a.id === ia.id)) merged.push(ia);
+        });
+        localStorage.setItem(KEYS.ADS, JSON.stringify(merged.length > 0 ? merged : INITIAL_ADS));
+      } else {
+        localStorage.setItem(KEYS.ADS, JSON.stringify(INITIAL_ADS));
+      }
     } catch {
       localStorage.setItem(KEYS.BUSINESSES, JSON.stringify([]));
       localStorage.setItem(KEYS.SERVICES, JSON.stringify([]));
       localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify([]));
+      localStorage.setItem(KEYS.ADS, JSON.stringify(INITIAL_ADS));
     }
 
     if (!localStorage.getItem(KEYS.BOOKINGS)) {
@@ -89,11 +115,15 @@ class StorageEngine {
     if (!localStorage.getItem(KEYS.CUSTOMERS)) {
       localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify([]));
     }
+    if (!localStorage.getItem(KEYS.ADS)) {
+      localStorage.setItem(KEYS.ADS, JSON.stringify(INITIAL_ADS));
+    }
   }
 
   resetAll() {
     localStorage.setItem(KEYS.BUSINESSES, JSON.stringify(INITIAL_BUSINESSES));
     localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
+    localStorage.setItem(KEYS.ADS, JSON.stringify(INITIAL_ADS));
     localStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
     localStorage.setItem(KEYS.CUSTOMERS, JSON.stringify([]));
   }
@@ -160,10 +190,25 @@ class StorageEngine {
   getServices(businessId?: string): Service[] {
     const raw = localStorage.getItem(KEYS.SERVICES);
     const all = raw ? (JSON.parse(raw) as Service[]) : INITIAL_SERVICES;
+
+    // Filter out obsolete legacy consultation services
+    const isLegacy = (name: string) => {
+      const n = (name || '').toLowerCase().trim();
+      return (
+        n.includes('discovery call') ||
+        n === 'initial consultation' ||
+        n === 'initial creative consultation' ||
+        (n.includes('initial') && n.includes('consultation'))
+      );
+    };
+
+    const cleaned = all.filter(s => !isLegacy(s.name));
+    const finalServices = cleaned.length > 0 ? cleaned : INITIAL_SERVICES;
+
     if (businessId) {
-      return all.filter(s => s.businessId === businessId);
+      return finalServices.filter(s => s.businessId === businessId);
     }
-    return all.length > 0 ? all : INITIAL_SERVICES;
+    return finalServices;
   }
 
   saveService(service: Service): Service {
@@ -193,23 +238,35 @@ class StorageEngine {
         const json = await res.json();
         const data = json.data;
         if (Array.isArray(data)) {
-          const mapped: Service[] = data.map((d: any) => ({
-            id: d.id,
-            businessId: d.business_id,
-            name: d.name,
-            category: d.category || 'General',
-            description: d.description || '',
-            durationMinutes: Number(d.duration_minutes) || 30,
-            bufferMinutes: Number(d.buffer_minutes) || 0,
-            price: Number(d.price) || 0,
-            currency: d.currency || 'NGN',
-            isActive: d.is_active ?? true,
-            bookingCount: d.booking_count || 0,
-            badge: d.badge,
-            businessName: d.business_name,
-            businessSlug: d.business_slug,
-            businessAddress: d.business_address,
-          }));
+          const isLegacy = (name: string) => {
+            const n = (name || '').toLowerCase().trim();
+            return (
+              n.includes('discovery call') ||
+              n === 'initial consultation' ||
+              n === 'initial creative consultation' ||
+              (n.includes('initial') && n.includes('consultation'))
+            );
+          };
+
+          const mapped: Service[] = data
+            .filter((d: any) => !isLegacy(d.name))
+            .map((d: any) => ({
+              id: d.id,
+              businessId: d.business_id,
+              name: d.name,
+              category: d.category || 'General',
+              description: d.description || '',
+              durationMinutes: Number(d.duration_minutes) || 30,
+              bufferMinutes: Number(d.buffer_minutes) || 0,
+              price: Number(d.price) || 0,
+              currency: d.currency || 'NGN',
+              isActive: d.is_active ?? true,
+              bookingCount: d.booking_count || 0,
+              badge: d.badge,
+              businessName: d.business_name,
+              businessSlug: d.business_slug,
+              businessAddress: d.business_address,
+            }));
 
           if (mapped.length > 0) {
             const current = this.getServices();
@@ -484,6 +541,24 @@ class StorageEngine {
     return item;
   }
 
+  sendRegistrationConfirmationEmail(params: {
+    fullName: string;
+    email: string;
+    role?: string;
+    businessName?: string;
+  }): NotificationLog {
+    const roleText = params.role === 'CUSTOMER' ? 'Client Customer' : 'Business Partner';
+    const bizDetail = params.businessName ? ` for "${params.businessName}"` : '';
+
+    return this.logNotification({
+      channel: 'EMAIL',
+      recipient: params.email,
+      title: `Registration Confirmed: Welcome to BookMe, ${params.fullName}!`,
+      message: `Dear ${params.fullName},\n\nYour BookMe account registration${bizDetail} has been successfully confirmed and verified!\n\n• Account Email: ${params.email}\n• Role: ${roleText}\n• Status: Active & Two-Factor Ready\n• Direct Booking Access: Enabled\n\nYou can now browse verified service providers, schedule instant appointments, or manage your business storefront.\n\nThank you for choosing BookMe!`,
+      status: 'DELIVERED',
+    });
+  }
+
   getCustomers(businessId?: string): Customer[] {
     const raw = localStorage.getItem(KEYS.CUSTOMERS);
     const all = raw ? (JSON.parse(raw) as Customer[]) : [];
@@ -499,6 +574,63 @@ class StorageEngine {
       return all;
     } catch {
       return [];
+    }
+  }
+
+  getAds(businessId?: string): AdCampaign[] {
+    try {
+      const raw = localStorage.getItem(KEYS.ADS);
+      const parsed: AdCampaign[] = raw ? JSON.parse(raw) : [];
+      const base = parsed.length > 0 ? parsed : INITIAL_ADS;
+      const map = new Map<string, AdCampaign>();
+      INITIAL_ADS.forEach(a => map.set(a.id, a));
+      base.forEach(a => map.set(a.id, a));
+      const all = Array.from(map.values());
+      if (businessId) {
+        return all.filter(a => a.businessId === businessId);
+      }
+      return all;
+    } catch {
+      return INITIAL_ADS;
+    }
+  }
+
+  getAdById(id: string): AdCampaign | undefined {
+    return this.getAds().find(a => a.id === id);
+  }
+
+  saveAd(ad: AdCampaign): AdCampaign {
+    const ads = this.getAds();
+    const index = ads.findIndex(a => a.id === ad.id);
+    if (index >= 0) {
+      ads[index] = ad;
+    } else {
+      ads.unshift(ad);
+    }
+    localStorage.setItem(KEYS.ADS, JSON.stringify(ads));
+    return ad;
+  }
+
+  deleteAd(adId: string) {
+    const ads = this.getAds().filter(a => a.id !== adId);
+    localStorage.setItem(KEYS.ADS, JSON.stringify(ads));
+  }
+
+  recordAdImpression(adId: string) {
+    const ads = this.getAds();
+    const match = ads.find(a => a.id === adId);
+    if (match) {
+      match.impressions = (match.impressions || 0) + 1;
+      localStorage.setItem(KEYS.ADS, JSON.stringify(ads));
+    }
+  }
+
+  recordAdClick(adId: string) {
+    const ads = this.getAds();
+    const match = ads.find(a => a.id === adId);
+    if (match) {
+      match.clicks = (match.clicks || 0) + 1;
+      localStorage.setItem(KEYS.ADS, JSON.stringify(ads));
     }
   }
 }

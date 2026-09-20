@@ -1,12 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { mockStorage } from '../../services/mockStorage';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { BusinessTenant } from '../../types';
 import {
   Building2, Globe, Phone, Mail, MapPin, Palette, Check, Save,
-  Copy, ExternalLink, Share2, QrCode, MessageCircle, Send, X, AlertCircle
+  Copy, ExternalLink, Share2, QrCode, MessageCircle, Send, X, AlertCircle,
+  Image as ImageIcon, Upload, Trash2, Plus, Sparkles, Megaphone, ArrowRight
 } from 'lucide-react';
+
+const PRESET_LOGOS = [
+  { label: 'Corporate Executive', url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=200&h=200&q=80' },
+  { label: 'Wellness Botanical', url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=200&h=200&q=80' },
+  { label: 'Athletic Gym', url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=200&h=200&q=80' },
+  { label: 'Creative Aperture', url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=200&h=200&q=80' },
+  { label: 'Tech Cyber Node', url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=200&h=200&q=80' },
+  { label: 'Dental Aesthetic', url: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&h=200&q=80' },
+];
+
+const PRESET_COVERS = [
+  { label: 'Modern Boardroom', url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&h=450&q=80' },
+  { label: 'Luxury Spa Resort', url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&h=450&q=80' },
+  { label: 'High-Tech Gym', url: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1200&h=450&q=80' },
+  { label: 'Lighting Studio', url: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&h=450&q=80' },
+  { label: 'Cloud Data Center', url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&h=450&q=80' },
+  { label: 'Clinical Suite', url: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1200&h=450&q=80' },
+];
 
 export const BusinessProfile: React.FC = () => {
   const { currentUser, updateUserBusiness } = useAuth();
@@ -20,6 +40,11 @@ export const BusinessProfile: React.FC = () => {
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
   const [accentColor, setAccentColor] = useState('#10B981');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [pictures, setPictures] = useState<string[]>([]);
+  const [newPictureUrl, setNewPictureUrl] = useState('');
+
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -36,6 +61,9 @@ export const BusinessProfile: React.FC = () => {
       setAddress(business.address);
       setDescription(business.description);
       setAccentColor(business.accentColor || '#10B981');
+      setLogoUrl(business.logoUrl || '');
+      setHeroImageUrl(business.heroImageUrl || '');
+      setPictures(business.pictures || []);
     }
   }, [business?.id, business?.slug]);
 
@@ -57,6 +85,53 @@ export const BusinessProfile: React.FC = () => {
     const subject = encodeURIComponent(`Book an appointment with ${name || 'our business'}`);
     const body = encodeURIComponent(`Hello,\n\nYou can easily book your next appointment online using our direct booking link:\n\n${shareUrl}\n\nWe look forward to seeing you!`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+  };
+
+  // Image Upload Helpers
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') setLogoUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleHeroUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') setHeroImageUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setPictures(prev => [...prev, reader.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddPictureUrl = () => {
+    if (newPictureUrl.trim()) {
+      setPictures(prev => [...prev, newPictureUrl.trim()]);
+      setNewPictureUrl('');
+    }
+  };
+
+  const handleRemovePicture = (idx: number) => {
+    setPictures(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -87,6 +162,9 @@ export const BusinessProfile: React.FC = () => {
         address,
         description,
         accentColor,
+        logoUrl: logoUrl.trim(),
+        heroImageUrl: heroImageUrl.trim(),
+        pictures,
       });
     }
 
@@ -101,6 +179,9 @@ export const BusinessProfile: React.FC = () => {
         address,
         description,
         accentColor,
+        logoUrl: logoUrl.trim(),
+        heroImageUrl: heroImageUrl.trim(),
+        pictures,
       });
 
       if (!res.success && res.error) {
@@ -115,21 +196,25 @@ export const BusinessProfile: React.FC = () => {
     }
 
     // 3. Update Auth context
-    updateUserBusiness(business.id, name.trim(), formattedSlug);
+    if (business) {
+      updateUserBusiness(business.id, name.trim(), formattedSlug);
+    }
 
     setIsSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
+  const activeAdsCount = business ? mockStorage.getAds(business.id).filter(a => a.isActive).length : 0;
+
   return (
-    <div style={{ maxWidth: '840px' }}>
+    <div style={{ maxWidth: '880px', margin: '0 auto', paddingBottom: '60px' }}>
       {/* ── Top Header ──────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>Business Profile & Booking Link</h1>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>Business Profile & Branding</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-            Customize your shareable customer URL, branding identity, and contact information.
+            Customize your logo, venue pictures, personalized ads, branding identity, and contact info.
           </p>
         </div>
 
@@ -141,7 +226,7 @@ export const BusinessProfile: React.FC = () => {
       {saved && (
         <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10B981', color: '#34D399', padding: '14px 18px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 4px 14px rgba(16,185,129,0.1)' }}>
           <Check size={20} color="#34D399" />
-          <span style={{ fontWeight: 600 }}>Business profile and booking link updated successfully!</span>
+          <span style={{ fontWeight: 600 }}>Business profile, pictures, and logo updated successfully!</span>
         </div>
       )}
 
@@ -152,14 +237,55 @@ export const BusinessProfile: React.FC = () => {
         </div>
       )}
 
+      {/* ── MARKETING ADS BANNER PROMPT ──────────────────────────────────── */}
+      <div className="card glow-card" style={{
+        padding: '20px 24px',
+        borderRadius: '16px',
+        marginBottom: '26px',
+        background: 'linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(124,58,237,0.12) 100%)',
+        border: '1px solid var(--brand-primary)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'var(--brand-primary)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <Megaphone size={22} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '2px' }}>
+              Personalized Ads & Campaign Promotions
+            </h3>
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+              You currently have <strong style={{ color: 'var(--brand-primary)' }}>{activeAdsCount} active ad{activeAdsCount !== 1 ? 's' : ''}</strong> boosting bookings on your page.
+            </p>
+          </div>
+        </div>
+
+        <Link to="/admin/ads" className="btn btn-primary" style={{ padding: '9px 18px', fontSize: '0.88rem' }}>
+          Manage Ads & Campaigns <ArrowRight size={15} />
+        </Link>
+      </div>
+
       {/* ── 1. CUSTOMER SHAREABLE URL HERO CARD ──────────────────────────── */}
       <div className="card" style={{
         padding: '26px',
         marginBottom: '26px',
         background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.05) 100%)',
-        border: '1px solid var(--brand-primary)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '16px',
-        boxShadow: 'var(--shadow-glow)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
@@ -240,9 +366,8 @@ export const BusinessProfile: React.FC = () => {
                 background: '#25D366', color: '#fff', border: 'none',
                 borderRadius: '8px', padding: '7px 14px', fontSize: '0.82rem',
                 fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px',
-                cursor: 'pointer', transition: 'transform 0.15s',
+                cursor: 'pointer',
               }}
-              className="hover-lift"
             >
               <MessageCircle size={15} /> WhatsApp
             </button>
@@ -290,9 +415,246 @@ export const BusinessProfile: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 2. GENERAL PROFILE & BRANDING FORM ────────────────────────────── */}
-      <form onSubmit={handleSave} className="card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+      {/* ── 2. BRAND ASSETS & PICTURES (LOGO & HERO & GALLERY) ─────────── */}
+      <div className="card" style={{ padding: '28px', marginBottom: '26px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ImageIcon size={20} color="var(--brand-primary)" /> Business Pictures & Logo
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            Upload your official brand logo, venue cover picture, and showcase photos to build trust with customers.
+          </p>
+        </div>
+
+        {/* 2A. LOGO UPLOAD & PRESETS */}
+        <div style={{
+          padding: '20px',
+          background: 'var(--bg-elevated)',
+          borderRadius: '14px',
+          border: '1px solid var(--border-subtle)'
+        }}>
+          <label style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '8px', display: 'block' }}>
+            Business Logo
+          </label>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Logo Preview */}
+            <div style={{
+              width: '84px',
+              height: '84px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              flexShrink: 0,
+              boxShadow: '0 6px 16px rgba(0,0,0,0.25)',
+              position: 'relative',
+              fontSize: '1.8rem',
+              fontWeight: 900
+            }}>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                (name ? name.slice(0, 2).toUpperCase() : 'BM')
+              )}
+            </div>
+
+            {/* Logo Controls */}
+            <div style={{ flex: 1, minWidth: '260px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter logo image URL (https://...)"
+                  value={logoUrl}
+                  onChange={e => setLogoUrl(e.target.value)}
+                  style={{ flex: 1, padding: '9px 12px', fontSize: '0.88rem' }}
+                />
+                <label className="btn btn-secondary" style={{ padding: '9px 14px', fontSize: '0.84rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  <Upload size={14} /> Upload
+                  <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
+                </label>
+                {logoUrl && (
+                  <button type="button" onClick={() => setLogoUrl('')} className="btn btn-ghost" style={{ padding: '8px', color: '#EF4444' }} title="Remove logo">
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Logo Quick Presets */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-faint)', alignSelf: 'center' }}>Presets:</span>
+                {PRESET_LOGOS.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setLogoUrl(p.url)}
+                    className="btn btn-ghost"
+                    style={{ fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2B. HERO / COVER PICTURE */}
+        <div style={{
+          padding: '20px',
+          background: 'var(--bg-elevated)',
+          borderRadius: '14px',
+          border: '1px solid var(--border-subtle)'
+        }}>
+          <label style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '8px', display: 'block' }}>
+            Hero / Cover Picture (Header Banner)
+          </label>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Enter cover image URL (https://...)"
+              value={heroImageUrl}
+              onChange={e => setHeroImageUrl(e.target.value)}
+              style={{ flex: 1, padding: '9px 12px', fontSize: '0.88rem' }}
+            />
+            <label className="btn btn-secondary" style={{ padding: '9px 14px', fontSize: '0.84rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <Upload size={14} /> Upload
+              <input type="file" accept="image/*" onChange={handleHeroUpload} style={{ display: 'none' }} />
+            </label>
+            {heroImageUrl && (
+              <button type="button" onClick={() => setHeroImageUrl('')} className="btn btn-ghost" style={{ padding: '8px', color: '#EF4444' }} title="Remove cover">
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+
+          {/* Cover Presets */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-faint)', alignSelf: 'center' }}>Presets:</span>
+            {PRESET_COVERS.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setHeroImageUrl(p.url)}
+                className="btn btn-ghost"
+                style={{ fontSize: '0.72rem', padding: '3px 8px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Cover Banner Preview */}
+          {heroImageUrl && (
+            <div style={{
+              width: '100%',
+              height: '160px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              position: 'relative',
+              border: '1px solid var(--border-subtle)'
+            }}>
+              <img src={heroImageUrl} alt="Cover Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{
+                position: 'absolute', bottom: '10px', left: '12px',
+                background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: '0.74rem',
+                padding: '3px 8px', borderRadius: '6px', fontWeight: 600
+              }}>
+                Cover Banner Preview
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 2C. PHOTO GALLERY & WORK PICTURES */}
+        <div style={{
+          padding: '20px',
+          background: 'var(--bg-elevated)',
+          borderRadius: '14px',
+          border: '1px solid var(--border-subtle)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div>
+              <label style={{ fontSize: '0.92rem', fontWeight: 700, display: 'block' }}>
+                Venue & Work Picture Gallery
+              </label>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Display pictures of your space, team, and past work on your public booking page.
+              </span>
+            </div>
+
+            <label className="btn btn-secondary" style={{ padding: '7px 14px', fontSize: '0.82rem', cursor: 'pointer' }}>
+              <Plus size={14} /> Add Photo
+              <input type="file" accept="image/*" onChange={handlePictureUpload} style={{ display: 'none' }} />
+            </label>
+          </div>
+
+          {/* Add via URL input */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Or paste picture URL to add to gallery…"
+              value={newPictureUrl}
+              onChange={e => setNewPictureUrl(e.target.value)}
+              style={{ flex: 1, padding: '8px 12px', fontSize: '0.84rem' }}
+            />
+            <button type="button" onClick={handleAddPictureUrl} className="btn btn-secondary" style={{ padding: '8px 14px', fontSize: '0.84rem' }}>
+              Add URL
+            </button>
+          </div>
+
+          {/* Gallery Thumbnails Grid */}
+          {pictures.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '28px 16px',
+              border: '1px dashed var(--border-subtle)',
+              borderRadius: '12px',
+              color: 'var(--text-faint)',
+              fontSize: '0.84rem'
+            }}>
+              No gallery pictures added yet. Upload pictures of your venue, team, or past work.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
+              {pictures.map((pic, idx) => (
+                <div key={idx} style={{
+                  height: '100px',
+                  borderRadius: '10px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-app)'
+                }}>
+                  <img src={pic} alt={`Gallery ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemovePicture(idx)}
+                    style={{
+                      position: 'absolute', top: '6px', right: '6px',
+                      background: 'rgba(239, 68, 68, 0.85)', color: '#fff',
+                      border: 'none', borderRadius: '50%', width: '22px', height: '22px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Remove picture"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 3. GENERAL PROFILE & BRANDING FORM ────────────────────────────── */}
+      <form onSubmit={handleSave} className="card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '26px' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
           Business Identity & Contact Details
         </h3>
 
@@ -372,7 +734,7 @@ export const BusinessProfile: React.FC = () => {
             <Palette size={15} /> Brand Accent Color
           </label>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px' }}>
-            {['#10B981', '#6366F1', '#0EA5E9', '#F59E0B', '#EC4899', '#8B5CF6'].map(c => (
+            {['#10B981', '#2563EB', '#7C3AED', '#0EA5E9', '#F59E0B', '#EC4899', '#DC2626'].map(c => (
               <button
                 type="button"
                 key={c}
@@ -397,12 +759,12 @@ export const BusinessProfile: React.FC = () => {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
           <button type="submit" className="btn btn-primary" style={{ minWidth: '180px' }} disabled={isSaving}>
-            <Save size={16} /> {isSaving ? 'Saving Changes...' : 'Save Changes'}
+            <Save size={16} /> {isSaving ? 'Saving Changes...' : 'Save All Changes'}
           </button>
         </div>
       </form>
 
-      {/* ── 3. QR CODE MODAL ──────────────────────────────────────────────── */}
+      {/* ── 4. QR CODE MODAL ──────────────────────────────────────────────── */}
       {showQrModal && (
         <div className="modal-overlay" onClick={() => setShowQrModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', textAlign: 'center', padding: '32px' }}>

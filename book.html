@@ -342,17 +342,40 @@ function updateSidebar() {
 /* ── Step 1: Services ───────────────────────────────────────── */
 async function loadServices() {
   const list = document.getElementById('services-list');
-  const { data: services, error } = await API.getServices();
+  const { data: rawServices, error } = await API.getServices();
+
+  const isLegacy = (name) => {
+    const n = (name || '').toLowerCase().trim();
+    return (
+      n.includes('discovery call') ||
+      n === 'initial consultation' ||
+      n === 'initial creative consultation' ||
+      (n.includes('initial') && n.includes('consultation'))
+    );
+  };
+
+  const services = (rawServices || []).filter(s => !isLegacy(s.name));
+
   if (error || !services.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">😕</div><p>No services available right now.</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>No services available right now.</p><p><a href="/services" style="color:var(--accent-lt);font-weight:600;">Browse Platform Directory</a></p></div>';
     return;
   }
-  list.innerHTML = services.map(svc => `
+
+  // Directory shortcut banner
+  const dirHeader = `
+    <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r-md);display:flex;align-items:center;justify-content:space-between;font-size:0.8125rem;">
+      <span style="color:var(--text-muted);">Browse all 20+ specialized services:</span>
+      <a href="/services" style="color:var(--accent-lt);font-weight:700;text-decoration:none;">Open Services Directory &rarr;</a>
+    </div>
+  `;
+
+  list.innerHTML = dirHeader + services.map(svc => `
     <div class="service-card" role="radio" aria-checked="false" tabindex="0" data-id="${svc.id}"
          aria-label="${APP.escapeHtml(svc.name)}, ${API.formatCurrency(svc.price)}, ${svc.duration_minutes} minutes">
       <div class="service-card-check" aria-hidden="true">✓</div>
       <div class="service-icon" aria-hidden="true">${APP.escapeHtml(svc.icon || '📋')}</div>
       <div class="service-info">
+        ${svc.business_name ? `<div style="font-size:0.75rem;font-weight:700;color:var(--accent-lt);margin-bottom:2px;">${APP.escapeHtml(svc.business_name)}</div>` : ''}
         <div class="service-name">${APP.escapeHtml(svc.name)}</div>
         <div class="service-desc">${APP.escapeHtml(svc.description)}</div>
         <div class="service-meta">
@@ -360,6 +383,7 @@ async function loadServices() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             ${svc.duration_minutes} min
           </span>
+          ${svc.category ? `<span class="service-meta-item" style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;">${APP.escapeHtml(svc.category)}</span>` : ''}
         </div>
         <div class="service-price">${API.formatCurrency(svc.price)}</div>
       </div>

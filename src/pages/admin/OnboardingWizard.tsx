@@ -142,6 +142,15 @@ export const OnboardingWizard: React.FC = () => {
       });
 
       updateUserBusiness(res.data.id, res.data.name, finalSlug);
+
+      // Dispatch business registration confirmation email
+      mockStorage.sendRegistrationConfirmationEmail({
+        fullName: currentUser?.fullName || businessName.trim(),
+        email: currentUser?.email || 'admin@bookme.local',
+        role: 'BUSINESS_ADMIN',
+        businessName: res.data.name || businessName.trim(),
+      });
+
       // Redirect to clean empty Dashboard
       navigate('/admin/dashboard');
     } else {

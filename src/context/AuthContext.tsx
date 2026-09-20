@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, setAuthToken, getAuthToken } from '../services/api';
+import { mockStorage } from '../services/mockStorage';
 
 export interface AuthUser {
   id: string;
@@ -90,6 +91,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         businessId: null,
       };
       setCurrentUser(userObj);
+
+      // Dispatch confirmation email to customer / business partner
+      mockStorage.sendRegistrationConfirmationEmail({
+        fullName: fullName.trim(),
+        email: email.trim(),
+        role: (res.data.role as any) || 'BUSINESS_ADMIN',
+      });
+
       return { success: true };
     }
     return { success: false, error: res.error || 'Failed to register' };

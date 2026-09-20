@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { mockStorage } from '../../services/mockStorage';
 import { useAuth } from '../../context/AuthContext';
-import { Service, BusinessTenant, TimeSlot } from '../../types';
+import { Service, BusinessTenant, TimeSlot, AdCampaign } from '../../types';
 import { ConflictModal } from '../../components/shared/ConflictModal';
 import confetti from 'canvas-confetti';
 import {
   Clock, MapPin, Phone, ShieldCheck, ArrowRight,
   CheckCircle2, User, Calendar as CalendarIcon,
-  Sparkles, Mail, MessageSquare
+  Sparkles, Mail, MessageSquare, Tag, Megaphone,
+  Image as ImageIcon, Percent, X
 } from 'lucide-react';
 
 export const BusinessBookingPage: React.FC = () => {
@@ -31,6 +32,10 @@ export const BusinessBookingPage: React.FC = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
+
+  const [ads, setAds] = useState<AdCampaign[]>([]);
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percent: number } | null>(null);
+  const [selectedGalleryPic, setSelectedGalleryPic] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [conflictSlots, setConflictSlots] = useState<TimeSlot[]>([]);
@@ -78,6 +83,11 @@ export const BusinessBookingPage: React.FC = () => {
 
       const bizServices = Array.from(map.values());
       setServices(bizServices);
+
+      // 3. Load active personalized ads & record impressions
+      const bAds = mockStorage.getAds(biz.id).filter(a => a.isActive);
+      setAds(bAds);
+      bAds.forEach(a => mockStorage.recordAdImpression(a.id));
 
       // Preselect service if query param matches, or pick first
       if (preselectedServiceId) {
@@ -217,82 +227,334 @@ export const BusinessBookingPage: React.FC = () => {
   }
 
   const initials = (business.name ? business.name.slice(0, 2).toUpperCase() : 'BM');
+  const heroAd = ads.find(a => a.placement === 'HERO_BANNER') || ads[0];
+  const marqueeAd = ads.find(a => a.placement === 'TOP_MARQUEE');
+
+  const handleApplyAd = (ad: AdCampaign) => {
+    mockStorage.recordAdClick(ad.id);
+    if (ad.targetServiceId) {
+      const match = services.find(s => s.id === ad.targetServiceId);
+      if (match) setSelectedService(match);
+    }
+    if (ad.discountCode && ad.discountPercent) {
+      setAppliedDiscount({ code: ad.discountCode, percent: ad.discountPercent });
+    }
+  };
 
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto', padding: '28px 20px 90px' }}>
-      
-      {/* ── Friendly Business Welcome Banner ────────────────────────────── */}
-      <div className="glass-card glow-card" style={{
-        padding: '28px',
-        borderRadius: '20px',
-        marginBottom: '32px',
-        background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%)',
-        border: '1px solid var(--border-subtle)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          {/* Logo / Initials Avatar */}
-          <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
-            color: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.4rem',
-            fontWeight: 900,
-            fontFamily: 'Outfit, sans-serif',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
-            flexShrink: 0,
-          }}>
-            {initials}
-          </div>
 
-          <div style={{ flex: 1, minWidth: '240px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <span className="badge" style={{
-                background: 'var(--brand-light)',
-                color: 'var(--brand-primary)',
-                border: '1px solid var(--brand-primary)',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                padding: '2px 8px'
-              }}>
-                <ShieldCheck size={13} /> Verified Business
+      {/* ── TOP MARQUEE AD ──────────────────────────────────────────────── */}
+      {marqueeAd && (
+        <div style={{
+          background: 'linear-gradient(90deg, var(--brand-primary) 0%, #7C3AED 100%)',
+          color: '#FFFFFF',
+          padding: '10px 18px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ background: 'rgba(255,255,255,0.25)', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800 }}>
+              {marqueeAd.badgeText}
+            </span>
+            <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+              {marqueeAd.headline}
+            </span>
+            {marqueeAd.discountCode && (
+              <span style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.2)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                CODE: {marqueeAd.discountCode}
               </span>
-              {business.category && (
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  {business.category}
-                </span>
+            )}
+          </div>
+          <button
+            onClick={() => handleApplyAd(marqueeAd)}
+            style={{
+              background: '#FFFFFF',
+              color: 'var(--brand-primary)',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            {marqueeAd.ctaText} <ArrowRight size={13} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Friendly Business Welcome Banner with Cover & Logo ───────────── */}
+      <div className="glass-card glow-card" style={{
+        borderRadius: '20px',
+        marginBottom: '24px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        overflow: 'hidden',
+      }}>
+        {/* Cover Photo Backdrop */}
+        {business.heroImageUrl && (
+          <div style={{
+            width: '100%',
+            height: '180px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <img
+              src={business.heroImageUrl}
+              alt={`${business.name} Cover`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'linear-gradient(to bottom, rgba(15,23,42,0.1) 0%, rgba(15,23,42,0.85) 100%)'
+            }} />
+          </div>
+        )}
+
+        <div style={{ padding: '28px', marginTop: business.heroImageUrl ? '-40px' : '0', position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap' }}>
+            {/* Logo / Initials Avatar */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%)',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.7rem',
+              fontWeight: 900,
+              fontFamily: 'Outfit, sans-serif',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.35)',
+              flexShrink: 0,
+              overflow: 'hidden',
+              border: '3px solid var(--bg-card)'
+            }}>
+              {business.logoUrl ? (
+                <img
+                  src={business.logoUrl}
+                  alt={business.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                initials
               )}
             </div>
 
-            <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 1.9rem)', fontWeight: 900, lineHeight: 1.2, marginBottom: '6px' }}>
-              {business.name}
-            </h1>
-
-            {business.description && (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '8px', maxWidth: '640px' }}>
-                {business.description}
-              </p>
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--text-faint)' }}>
-              {business.address && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <MapPin size={14} color="var(--brand-primary)" /> {business.address}
+            <div style={{ flex: 1, minWidth: '240px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span className="badge" style={{
+                  background: 'var(--brand-light)',
+                  color: 'var(--brand-primary)',
+                  border: '1px solid var(--brand-primary)',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  padding: '2px 8px'
+                }}>
+                  <ShieldCheck size={13} /> Verified Business
                 </span>
+                {business.category && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    {business.category}
+                  </span>
+                )}
+              </div>
+
+              <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 1.9rem)', fontWeight: 900, lineHeight: 1.2, marginBottom: '6px' }}>
+                {business.name}
+              </h1>
+
+              {business.description && (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '8px', maxWidth: '640px' }}>
+                  {business.description}
+                </p>
               )}
-              {business.phone && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Phone size={14} color="var(--brand-primary)" /> {business.phone}
-                </span>
-              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '0.82rem', color: 'var(--text-faint)' }}>
+                {business.address && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <MapPin size={14} color="var(--brand-primary)" /> {business.address}
+                  </span>
+                )}
+                {business.phone && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Phone size={14} color="var(--brand-primary)" /> {business.phone}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── PERSONALIZED HERO BANNER AD ──────────────────────────────────── */}
+      {heroAd && (
+        <div className="glass-card glow-card" style={{
+          borderRadius: '18px',
+          border: '1px solid var(--brand-primary)',
+          background: 'linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(124,58,237,0.12) 100%)',
+          padding: '20px 24px',
+          marginBottom: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '20px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flex: 1, minWidth: '280px' }}>
+            {heroAd.imageUrl && (
+              <img
+                src={heroAd.imageUrl}
+                alt="Promotion"
+                style={{ width: '80px', height: '80px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
+              />
+            )}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                <span style={{
+                  background: 'var(--brand-primary)',
+                  color: '#fff',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  letterSpacing: '0.04em'
+                }}>
+                  {heroAd.badgeText}
+                </span>
+                {heroAd.discountPercent && (
+                  <span style={{
+                    background: '#EF444422',
+                    color: '#EF4444',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    padding: '2px 8px',
+                    borderRadius: '6px'
+                  }}>
+                    {heroAd.discountPercent}% OFF
+                  </span>
+                )}
+                {heroAd.discountCode && (
+                  <span style={{
+                    fontSize: '0.76rem',
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    color: 'var(--text-main)',
+                    background: 'var(--bg-elevated)',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    border: '1px dashed var(--border-subtle)'
+                  }}>
+                    USE CODE: {heroAd.discountCode}
+                  </span>
+                )}
+              </div>
+              <h3 style={{ fontSize: '1.18rem', fontWeight: 800, marginBottom: '4px' }}>
+                {heroAd.headline}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', lineHeight: 1.45 }}>
+                {heroAd.description}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => handleApplyAd(heroAd)}
+            className="btn btn-primary"
+            style={{
+              padding: '12px 22px',
+              borderRadius: '12px',
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {heroAd.ctaText} <ArrowRight size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* ── VENUE & STUDIO PICTURES GALLERY ──────────────────────────────── */}
+      {business.pictures && business.pictures.length > 0 && (
+        <div style={{ marginBottom: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <ImageIcon size={18} color="var(--brand-primary)" />
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Space & Work Gallery</h3>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: '14px',
+          }}>
+            {business.pictures.map((pic, idx) => (
+              <div
+                key={idx}
+                onClick={() => setSelectedGalleryPic(pic)}
+                className="hover-lift"
+                style={{
+                  height: '120px',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border-subtle)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  position: 'relative'
+                }}
+              >
+                <img
+                  src={pic}
+                  alt={`Space photo ${idx + 1}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Gallery Lightbox Modal */}
+      {selectedGalleryPic && (
+        <div
+          onClick={() => setSelectedGalleryPic(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+            zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px'
+          }}
+        >
+          <div style={{ maxWidth: '90vw', maxHeight: '85vh', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <img
+              src={selectedGalleryPic}
+              alt="Enlarged gallery photo"
+              style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '16px', objectFit: 'contain' }}
+            />
+            <button
+              onClick={() => setSelectedGalleryPic(null)}
+              style={{
+                position: 'absolute', top: '-16px', right: '-16px',
+                background: '#fff', color: '#000', border: 'none', borderRadius: '50%',
+                width: '36px', height: '36px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)'
+              }}
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Main 3-Step Booking Wizard ───────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -604,7 +866,22 @@ export const BusinessBookingPage: React.FC = () => {
               }}>
                 <CheckCircle2 size={18} color="var(--brand-primary)" style={{ flexShrink: 0 }} />
                 <span>
-                  <strong>No online charge today.</strong> You can pay with card or cash when you arrive for your appointment ({selectedService.currency} {Number(selectedService.price).toLocaleString()}).
+                  <strong>No online charge today.</strong> You can pay with card or cash when you arrive for your appointment{' '}
+                  {appliedDiscount ? (
+                    <>
+                      <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: '6px' }}>
+                        {selectedService.currency} {Number(selectedService.price).toLocaleString()}
+                      </span>
+                      <strong style={{ color: 'var(--brand-primary)' }}>
+                        {selectedService.currency} {Number(Math.round(selectedService.price * (1 - appliedDiscount.percent / 100))).toLocaleString()}
+                      </strong>{' '}
+                      <span style={{ background: '#10B98122', color: '#10B981', padding: '2px 6px', borderRadius: '4px', fontSize: '0.74rem', fontWeight: 800 }}>
+                        {appliedDiscount.percent}% OFF ({appliedDiscount.code})
+                      </span>
+                    </>
+                  ) : (
+                    `(${selectedService.currency} ${Number(selectedService.price).toLocaleString()})`
+                  )}.
                 </span>
               </div>
 

@@ -5,7 +5,7 @@ import { mockStorage } from '../../services/mockStorage';
 import {
   LayoutDashboard, Calendar as CalendarIcon, BookOpen, Layers,
   Clock, Users, CreditCard, Bell, BarChart3, Settings,
-  ExternalLink, Plus, CheckCircle2
+  ExternalLink, Plus, CheckCircle2, Megaphone
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -20,6 +20,7 @@ export const AdminLayout: React.FC = () => {
     { label: 'Calendar', path: '/admin/calendar', icon: CalendarIcon },
     { label: 'Bookings', path: '/admin/bookings', icon: BookOpen },
     { label: 'Services', path: '/admin/services', icon: Layers },
+    { label: 'Ads & Promotions', path: '/admin/ads', icon: Megaphone },
     { label: 'Availability', path: '/admin/availability', icon: Clock },
     { label: 'Customers', path: '/admin/customers', icon: Users },
     { label: 'Payments', path: '/admin/payments', icon: CreditCard },

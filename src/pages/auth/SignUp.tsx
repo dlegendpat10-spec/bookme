@@ -14,6 +14,7 @@ export const SignUp: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [registeredSuccess, setRegisteredSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +40,10 @@ export const SignUp: React.FC = () => {
     setIsSubmitting(false);
 
     if (result.success) {
-      // Redirect to Business Creation Onboarding Flow
-      navigate('/admin/onboarding');
+      setRegisteredSuccess(true);
+      setTimeout(() => {
+        navigate('/admin/onboarding');
+      }, 1600);
     } else {
       setErrorMessage(result.error || 'Failed to create account.');
     }
@@ -66,26 +69,59 @@ export const SignUp: React.FC = () => {
           </p>
         </div>
 
-        {/* Error Alert */}
-        {errorMessage && (
-          <div style={{
-            background: 'rgba(244, 63, 94, 0.1)',
-            border: '1px solid rgba(244, 63, 94, 0.3)',
-            color: '#FB7185',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '0.86rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '20px',
-          }}>
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
-            <span>{errorMessage}</span>
+        {registeredSuccess ? (
+          <div style={{ textAlign: 'center', padding: '24px 8px' }}>
+            <div style={{
+              width: '64px', height: '64px', borderRadius: '50%',
+              background: 'rgba(16,185,129,0.15)', color: 'var(--brand-primary)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: '18px', border: '1px solid var(--brand-primary)'
+            }}>
+              <CheckCircle2 size={36} />
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px' }}>
+              Registration Confirmed!
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: '16px' }}>
+              A confirmation email has been dispatched to <strong>{email}</strong>.
+            </p>
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              fontSize: '0.84rem',
+              color: 'var(--brand-primary)',
+              marginBottom: '20px'
+            }}>
+              ✉️ Confirmation email dispatched to your inbox. Proceeding to business setup…
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-faint)', fontSize: '0.84rem' }}>
+              <Loader2 size={16} className="animate-spin" /> Redirecting to Onboarding Wizard…
+            </div>
           </div>
-        )}
+        ) : (
+          <>
+            {/* Error Alert */}
+            {errorMessage && (
+              <div style={{
+                background: 'rgba(244, 63, 94, 0.1)',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                color: '#FB7185',
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.86rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '20px',
+              }}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Full Name */}
           <div>
             <label className="field-label">Full Name</label>
@@ -193,6 +229,8 @@ export const SignUp: React.FC = () => {
             Sign in
           </Link>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

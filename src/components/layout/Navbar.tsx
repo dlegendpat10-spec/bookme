@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { mockStorage } from '../../services/mockStorage';
 import { NotificationViewerModal } from '../shared/NotificationViewerModal';
-import { ExternalLink, ChevronDown, Palette, LogOut, User, LogIn, Bell } from 'lucide-react';
+import { ExternalLink, ChevronDown, Palette, LogOut, User, LogIn, Bell, Building2 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { currentUser, role, signOut, isAuthenticated } = useAuth();
@@ -210,17 +210,66 @@ export const Navbar: React.FC = () => {
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>{currentUser.fullName}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)', marginTop: '2px' }}>{currentUser.email}</div>
                 </div>
-                <button
-                  onClick={() => { signOut(); setShowUserMenu(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
-                    background: 'transparent', border: 'none', color: '#FB7185',
-                    borderRadius: '8px', padding: '8px 12px', cursor: 'pointer',
-                    fontSize: '0.88rem', fontWeight: 600, textAlign: 'left',
-                  }}
-                >
-                  <LogOut size={15} /> Sign Out
-                </button>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '6px' }}>
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setShowUserMenu(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '8px 12px', borderRadius: '6px',
+                      color: 'var(--text-main)', textDecoration: 'none',
+                      fontSize: '0.86rem', fontWeight: 600
+                    }}
+                    className="menu-item-hover"
+                  >
+                    <Building2 size={15} color="var(--brand-primary)" /> Admin Portal
+                  </Link>
+
+                  <Link
+                    to="/customer/bookings"
+                    onClick={() => setShowUserMenu(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '8px 12px', borderRadius: '6px',
+                      color: 'var(--text-main)', textDecoration: 'none',
+                      fontSize: '0.86rem', fontWeight: 600
+                    }}
+                    className="menu-item-hover"
+                  >
+                    <User size={15} color="var(--brand-primary)" /> My Bookings
+                  </Link>
+
+                  {activeSlug && (
+                    <Link
+                      to={`/business/${activeSlug}`}
+                      onClick={() => setShowUserMenu(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '8px 12px', borderRadius: '6px',
+                        color: 'var(--text-main)', textDecoration: 'none',
+                        fontSize: '0.86rem', fontWeight: 600
+                      }}
+                      className="menu-item-hover"
+                    >
+                      <ExternalLink size={15} color="var(--brand-primary)" /> Storefront Page
+                    </Link>
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
+                  <button
+                    onClick={() => { signOut(); setShowUserMenu(false); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                      background: 'transparent', border: 'none', color: '#FB7185',
+                      borderRadius: '8px', padding: '8px 12px', cursor: 'pointer',
+                      fontSize: '0.88rem', fontWeight: 600, textAlign: 'left',
+                    }}
+                  >
+                    <LogOut size={15} /> Sign Out
+                  </button>
+                </div>
               </div>
             )}
           </div>

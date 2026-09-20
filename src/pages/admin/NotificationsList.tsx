@@ -69,19 +69,38 @@ export const NotificationsList: React.FC = () => {
     setTimeout(() => setTestSentMsg(null), 5000);
   };
 
+  const handleSendRegistrationEmail = () => {
+    const email = business?.email || currentUser?.email || 'admin@bookme.local';
+    const name = currentUser?.fullName || business?.name || 'Valued Partner';
+
+    mockStorage.sendRegistrationConfirmationEmail({
+      fullName: name,
+      email,
+      role: 'BUSINESS_ADMIN',
+      businessName: business?.name || 'Your Business',
+    });
+
+    refreshLogs();
+    setTestSentMsg(`Registration welcome confirmation email dispatched to ${email}! View delivery log below.`);
+    setTimeout(() => setTestSentMsg(null), 5000);
+  };
+
   return (
     <div style={{ maxWidth: '1080px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '1.8rem', marginBottom: '4px' }}>Multi-Channel Notifications & Client Emails</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
-            Automate booking confirmations, status changes, and responses sent to clients and business admins.
+            Automate booking confirmations, registration welcomes, and status alerts sent to clients and business admins.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={handleSendRegistrationEmail} title="Send Registration Confirmation Email">
+            <Mail size={15} color="#10B981" /> Resend Registration Email
+          </button>
           <button className="btn btn-secondary" onClick={handleSendTestEmail} title="Fire test emails to client & admin">
-            <Send size={15} color="#60A5FA" /> Test Email Dispatch
+            <Send size={15} color="#60A5FA" /> Test Booking Email
           </button>
           <button className="btn btn-primary" onClick={handleSave}>
             <Save size={16} /> Save Rules

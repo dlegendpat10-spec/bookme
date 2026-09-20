@@ -73,7 +73,19 @@ export const api = {
   getMyBusiness: () =>
     request<any>('/businesses/me'),
 
-  updateMyBusiness: (data: { name?: string; slug?: string; category?: string; phone?: string; email?: string; address?: string; description?: string; accentColor?: string }) =>
+  updateMyBusiness: (data: {
+    name?: string;
+    slug?: string;
+    category?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    description?: string;
+    accentColor?: string;
+    logoUrl?: string;
+    heroImageUrl?: string;
+    pictures?: string[];
+  }) =>
     request<any>('/businesses/me', {
       method: 'PUT',
       body: JSON.stringify(data),
